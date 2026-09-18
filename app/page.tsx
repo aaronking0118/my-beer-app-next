@@ -99,6 +99,102 @@ function StarRating({ rank }: { rank: number | null | string }) {
     );
 }
 
+function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; max: number; type: 'abv' | 'ibu'; beerId: number }) {
+    if (value == null || isNaN(value)) return <span className="text-gray-500 text-xs">--</span>;
+
+    const numericVal = typeof value === 'number' ? value : parseFloat(String(value));
+
+    const percentExclamationIcon = (
+        <span className="font-mono font-black text-sm animate-pulse tracking-tighter">
+            %!
+        </span>
+    );
+
+    const detailedHopIcon = (
+        <svg className="w-4 h-4 animate-pulse flex-shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C10.5 2 9 3.2 9 5c0 .8.3 1.5.8 2.1C8.3 8 7 9.8 7 12c0 1.8.8 3.4 2 4.4-.5.8-.8 1.7-.8 2.6 0 2.2 1.8 4 4 4s4-1.8 4-4c0-.9-.3-1.8-.8-2.6 1.2-1 2-2.6 2-4.4 0-2.2-1.3-4-2.8-4.9.5-.6.8-1.3.8-2.1 0-1.8-1.5-3-3-3zm0 2c.6 0 1 .6 1 1.5 0 .5-.2 1-.6 1.4l-.4.4-.4-.4c-.4-.4-.6-.9-.6-1.4 0-.9.4-1.5 1-1.5zm0 6c1.1 0 2 .5 2.6 1.2-.6.7-1.5 1.2-2.6 1.2s-2-.5-2.6-1.2c.6-.7 1.5-1.2 2.6-1.2zm0 5c1.4 0 2.7.5 3.6 1.3-.9.8-2.2 1.3-3.6 1.3s-2.7-.5-3.6-1.3c.9-.8 2.2-1.3 3.6-1.3zm0 4.5c.9 0 1.8-.3 2.5-.8-.7.5-1.6.8-2.5.8s-1.8-.3-2.5-.8c.7.5 1.6.8 2.5.8z"/>
+        </svg>
+    );
+
+    if (type === 'abv' && numericVal > 10) {
+        return (
+            <div className="flex justify-center">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/95 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                    {percentExclamationIcon}
+                    <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (type === 'ibu' && numericVal > 100) {
+        return (
+            <div className="flex justify-center">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/95 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)]">
+                    {detailedHopIcon}
+                    <span className="font-mono font-bold text-xs">{Math.round(numericVal)}</span>
+                </div>
+            </div>
+        );
+    }
+
+    const clampedVal = Math.min(Math.max(numericVal, 0), max);
+    const percentage = clampedVal / max;
+    const angle = -90 + percentage * 180;
+
+    const formattedVal = type === 'abv' 
+        ? (Number.isInteger(numericVal) ? `${numericVal}%` : `${numericVal.toFixed(1)}%`)
+        : `${Math.round(numericVal)}`;
+
+    const gradientId = `gauge-gradient-${beerId}-${type}`;
+
+    return (
+        <div className="flex flex-col items-center">
+            <div className="relative w-20 h-12 flex items-center justify-center">
+                <svg className="w-20 h-10 overflow-visible" viewBox="0 0 36 18">
+                    <defs>
+                        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                            {type === 'abv' ? (
+                                <>
+                                    <stop offset="0%" stopColor="#06b6d4" />
+                                    <stop offset="50%" stopColor="#3b82f6" />
+                                    <stop offset="100%" stopColor="#581c87" />
+                                </>
+                            ) : (
+                                <>
+                                    <stop offset="0%" stopColor="#d97706" />
+                                    <stop offset="50%" stopColor="#84cc16" />
+                                    <stop offset="100%" stopColor="#22c55e" />
+                                </>
+                            )}
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M 3 16 A 15 15 0 0 1 33 16"
+                        fill="none"
+                        stroke={`url(#${gradientId})`}
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                    />
+                </svg>
+
+                <div 
+                    className="absolute bottom-0 left-1/2 w-0.5 h-10 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.9)]"
+                    style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
+                >
+                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900 shadow"></div>
+                </div>
+            </div>
+
+            <div className="w-28 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                <span className="w-6 text-left">0</span>
+                <span className="font-bold text-white text-xs text-center flex-1">{formattedVal}</span>
+                <span className="w-6 text-right">{max}</span>
+            </div>
+        </div>
+    );
+}
+
 export default function Home() {
     const [beers, setBeers] = useState<Beer[]>([]);
     const [totalBeers, setTotalBeers] = useState(0);
@@ -272,6 +368,7 @@ export default function Home() {
                                         <stop offset="100%" stopColor="#1c1917" />
                                     </linearGradient>
                                 </defs>
+                                {/* Clearly visible tick marks outside the arc */}
                                 {Array.from({ length: 9 }).map((_, i) => {
                                     const deg = -135 + i * (270 / 8);
                                     return (
@@ -484,7 +581,7 @@ export default function Home() {
                                                 <td className="p-4 font-mono text-blue-400">#{beer.beer_number}</td>
                                                 <td className="p-4">
                                                     <div className="w-8 flex justify-center">
-                                                        <BeerGlass srm={beer.srm} style={beer.beer_style} />
+                                                        <BeerGlass srm={beer.srm} />
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
@@ -499,21 +596,26 @@ export default function Home() {
                                                                 <img 
                                                                     src={`https://flagcdn.com/24x18/${countryCode}.png`} 
                                                                     alt={beer.country} 
-                                                                    className="w-5 h-auto rounded-sm object-cover"
+                                                                    className="w-5 h-3.5 object-cover rounded shadow-sm border border-gray-700" 
                                                                 />
-                                                            ) : null}
-                                                            <span>{beer.state ? `${beer.state}, ` : ''}{beer.country}</span>
+                                                            ) : (
+                                                                <span className="w-5 h-3.5 flex items-center justify-center text-xs">??</span>
+                                                            )}
+                                                            <span className="font-medium text-white">{beer.country}</span>
                                                         </div>
-                                                    ) : '--'}
+                                                    ) : (
+                                                        <span className="text-gray-500 text-xs">--</span>
+                                                    )}
+                                                    {beer.state && <div className="text-xs text-gray-400 mt-0.5 ml-7">{beer.state}</div>}
                                                 </td>
                                                 <td className="p-4">
                                                     <StarRating rank={beer.rank} />
                                                 </td>
-                                                <td className="p-4 text-center font-mono text-gray-300">
-                                                    {beer.abv != null ? `${beer.abv}%` : '--'}
+                                                <td className="p-4">
+                                                    <SpeedometerGauge value={beer.abv} max={10} type="abv" beerId={beer.id} />
                                                 </td>
-                                                <td className="p-4 text-center font-mono text-gray-300">
-                                                    {beer.ibu != null ? beer.ibu : '--'}
+                                                <td className="p-4">
+                                                    <SpeedometerGauge value={beer.ibu} max={100} type="ibu" beerId={beer.id} />
                                                 </td>
                                             </tr>
                                         );
@@ -523,147 +625,6 @@ export default function Home() {
                         </table>
                     </div>
                 </div>
-
-                {/* Add Beer Modal */}
-                {isModalOpen && (
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                        <div className="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-xl p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                            <div className="flex justify-between items-center border-b border-gray-800 pb-4">
-                                <h2 className="text-xl font-bold text-white">Add New Beer Entry</h2>
-                                <button 
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="text-gray-400 hover:text-white text-lg font-mono"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleAddBeer} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Brewery Name *</label>
-                                        <input 
-                                            type="text" 
-                                            required 
-                                            value={breweryName} 
-                                            onChange={(e) => setBreweryName(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Beer Name *</label>
-                                        <input 
-                                            type="text" 
-                                            required 
-                                            value={beerName} 
-                                            onChange={(e) => setBeerName(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Style</label>
-                                        <input 
-                                            type="text" 
-                                            value={beerStyle} 
-                                            onChange={(e) => setBeerStyle(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Country</label>
-                                        <input 
-                                            type="text" 
-                                            value={country} 
-                                            onChange={(e) => setCountry(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">State / Region</label>
-                                        <input 
-                                            type="text" 
-                                            value={state} 
-                                            onChange={(e) => setState(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Rank (0-5)</label>
-                                        <input 
-                                            type="number" 
-                                            step="0.1" 
-                                            min="0" 
-                                            max="5"
-                                            value={rank} 
-                                            onChange={(e) => setRank(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">ABV (%)</label>
-                                        <input 
-                                            type="number" 
-                                            step="0.1" 
-                                            value={abv} 
-                                            onChange={(e) => setAbv(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">IBU</label>
-                                        <input 
-                                            type="number" 
-                                            value={ibu} 
-                                            onChange={(e) => setIbu(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-mono text-gray-400 uppercase mb-1">SRM</label>
-                                        <input 
-                                            type="number" 
-                                            value={srm} 
-                                            onChange={(e) => setSrm(e.target.value)}
-                                            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Tasting Notes</label>
-                                    <textarea 
-                                        rows={3}
-                                        value={tastingNotes} 
-                                        onChange={(e) => setTastingNotes(e.target.value)}
-                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 rounded-xl text-gray-300 hover:bg-gray-800 transition-colors text-sm font-semibold"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors text-sm font-semibold shadow-lg"
-                                    >
-                                        Save Beer
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
 
             </div>
         </main>
