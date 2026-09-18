@@ -57,7 +57,8 @@ export async function GET(request: Request) {
         const total = parseInt(countResult.rows[0].count, 10);
 
         // Fetch total unique breweries
-        const breweriesResult = await pool.query(`SELECT COUNT(DISTINCT LOWER(TRIM(brewery_name))) FROM beers`);
+        const breweriesQuery = `SELECT COUNT(DISTINCT LOWER(TRIM(brewery_name))) FROM beers ${whereClause}`;
+        const breweriesResult = await pool.query(breweriesQuery, queryParams);
         const totalBreweries = parseInt(breweriesResult.rows[0].count, 10);
 
         // Fetch all unique styles for dropdown
