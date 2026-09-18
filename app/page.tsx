@@ -132,7 +132,7 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
         ? (Number.isInteger(numericVal) ? `${numericVal}%` : `${numericVal.toFixed(1)}%`)
         : `${Math.round(numericVal)}`;
 
-    const gradientId = `gauge-gradient-${type}-${Math.random().toString(36).substring(2, 9)}`;
+    const gradientId = `gauge-gradient-${type}`;
 
     return (
         <div className="flex flex-col items-center">
