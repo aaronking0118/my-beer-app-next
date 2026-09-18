@@ -109,10 +109,10 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
         </span>
     );
 
-    // Hop Cone Icon for IBU > max
-    const hopConeIcon = (
+    // Detailed Hop Cone Icon for IBU > max
+    const detailedHopIcon = (
         <svg className="w-4 h-4 animate-pulse flex-shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C9 2 7 4.5 7 7c0 1.5.6 2.8 1.5 3.8C7.5 11.8 7 13.3 7 15c0 2.5 2 4.5 5 4.5s5-2 5-4.5c0-1.7-.5-3.2-1.5-4.2.9-1 1.5-2.3 1.5-3.8 0-2.5-2-5-5-5zm0 2c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3zm0 9c1.4 0 2.6.5 3.5 1.3-.9.8-2.1 1.2-3.5 1.2s-2.6-.4-3.5-1.2c.9-.8 2.1-1.3 3.5-1.3zm0 4.5c1.1 0 2.1-.3 3-.8-.9.5-1.9.8-3 .8s-2.1-.3-3-.8c.9.5 1.9.8 3 .8z"/>
+            <path d="M12 2C10.5 2 9 3.2 9 5c0 .8.3 1.5.8 2.1C8.3 8 7 9.8 7 12c0 1.8.8 3.4 2 4.4-.5.8-.8 1.7-.8 2.6 0 2.2 1.8 4 4 4s4-1.8 4-4c0-.9-.3-1.8-.8-2.6 1.2-1 2-2.6 2-4.4 0-2.2-1.3-4-2.8-4.9.5-.6.8-1.3.8-2.1 0-1.8-1.5-3-3-3zm0 2c.6 0 1 .6 1 1.5 0 .5-.2 1-.6 1.4l-.4.4-.4-.4c-.4-.4-.6-.9-.6-1.4 0-.9.4-1.5 1-1.5zm0 6c1.1 0 2 .5 2.6 1.2-.6.7-1.5 1.2-2.6 1.2s-2-.5-2.6-1.2c.6-.7 1.5-1.2 2.6-1.2zm0 5c1.4 0 2.7.5 3.6 1.3-.9.8-2.2 1.3-3.6 1.3s-2.7-.5-3.6-1.3c.9-.8 2.2-1.3 3.6-1.3zm0 4.5c.9 0 1.8-.3 2.5-.8-.7.5-1.6.8-2.5.8s-1.8-.3-2.5-.8c.7.5 1.6.8 2.5.8z"/>
         </svg>
     );
 
@@ -121,7 +121,7 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
             <div className="flex justify-center">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/95 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
                     {percentExclamationIcon}
-                    <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%!</span>
+                    <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%</span>
                 </div>
             </div>
         );
@@ -131,8 +131,8 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
         return (
             <div className="flex justify-center">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/95 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)]">
-                    {hopConeIcon}
-                    <span className="font-mono font-bold text-xs">{Math.round(numericVal)}!</span>
+                    {detailedHopIcon}
+                    <span className="font-mono font-bold text-xs">{Math.round(numericVal)}</span>
                 </div>
             </div>
         );
@@ -150,7 +150,7 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     return (
         <div className="flex flex-col items-center">
-            {/* Gauge Wrapper with explicit center reference */}
+            {/* Gauge Wrapper */}
             <div className="relative w-16 flex flex-col items-center">
                 <div className="relative w-16 h-9 bg-gray-900 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
                     <svg className="absolute inset-0 w-full h-full" viewBox="0 0 64 36">
@@ -190,11 +190,11 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
                 </div>
             </div>
 
-            {/* Min, Value, Max Labels Centered precisely under needle base */}
-            <div className="w-24 flex items-center justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-1">
+            {/* Min, Value, Max Labels - Value centered perfectly under needle base */}
+            <div className="w-24 flex items-center justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-1 relative">
                 <span>0</span>
-                <span className="font-bold text-white text-center">{formattedVal}</span>
-                <span>{max}</span>
+                <span className="absolute left-1/2 -translate-x-1/2 font-bold text-white text-center">{formattedVal}</span>
+                <span className="ml-auto">{max}</span>
             </div>
         </div>
     );
