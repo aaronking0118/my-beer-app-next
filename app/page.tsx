@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import StarRating from '@/components/StarRating';
-import SpeedometerGauge from '@/components/SpeedometerGauge';
+import StarRating from './components/StarRating';
+import SpeedometerGauge from './components/SpeedometerGauge';
 
 interface Beer {
     id: number;
