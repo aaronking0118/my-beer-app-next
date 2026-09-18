@@ -36,7 +36,7 @@ function getCountryCode(country: string | null): string {
     return '';
 }
 
-// Star rating component using stable SVG gradients for precise partial fills
+// Star rating component using explicit Full, Half, and Empty SVG icons
 function StarRating({ rank }: { rank: number | null | string }) {
     if (rank == null || rank === '') return <span className="text-gray-500 text-xs">--</span>;
     
@@ -50,28 +50,35 @@ function StarRating({ rank }: { rank: number | null | string }) {
 
     return (
         <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map((star) => {
                     const diff = numericRank - (star - 1);
-                    let fillPercentage = 0;
-                    if (diff >= 1) fillPercentage = 100;
-                    else if (diff > 0) fillPercentage = diff * 100;
 
-                    // Stable gradient ID based on rank and star position to avoid hydration errors
-                    const gradientId = `star-grad-${numericRank}-${star}`;
+                    // Full Star
+                    if (diff >= 0.75) {
+                        return (
+                            <svg key={star} className="w-4 h-4" viewBox="0 0 24 24" fill={starColor}>
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                        );
+                    }
 
+                    // Half Star
+                    if (diff >= 0.25) {
+                        return (
+                            <svg key={star} className="w-4 h-4" viewBox="0 0 24 24">
+                                {/* Left Half Filled */}
+                                <path fill={starColor} d="M12 2v15.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                {/* Right Half Dark Empty */}
+                                <path fill="#374151" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77V2z" />
+                            </svg>
+                        );
+                    }
+
+                    // Empty Star
                     return (
-                        <svg key={star} className="w-4 h-4" viewBox="0 0 24 24">
-                            <defs>
-                                <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset={`${fillPercentage}%`} stopColor={starColor} />
-                                    <stop offset={`${fillPercentage}%`} stopColor="#374151" />
-                                </linearGradient>
-                            </defs>
-                            <path
-                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                                fill={`url(#${gradientId})`}
-                            />
+                        <svg key={star} className="w-4 h-4" viewBox="0 0 24 24" fill="#374151">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
                     );
                 })}
