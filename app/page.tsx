@@ -221,10 +221,8 @@ export default function Home() {
     const [srm, setSrm] = useState('');
     const [tastingNotes, setTastingNotes] = useState('');
     
-    // Single source of truth for goal sliders/inputs
     const [beerMax, setBeerMax] = useState(15000);
     const [breweryMax, setBreweryMax] = useState(2000);
-    const [isEditingGoals, setIsEditingGoals] = useState(false);
 
     const fetchBeers = async () => {
         setLoading(true);
@@ -255,7 +253,6 @@ export default function Home() {
         return sum / rankedBeers.length;
     }, [beers]);
     
-    // Gauge Angles & Percentages for Dashboard Cluster
     const beerAngle = Math.min(Math.max((totalBeers / beerMax) * 180 - 90, -90), 90);
     const breweryAngle = Math.min(Math.max((totalBreweries / breweryMax) * 180 - 90, -90), 90);
 
@@ -321,7 +318,6 @@ export default function Home() {
                         </p>
                     </div>
 
-                    {/* Goal Editor Inputs & Add New Beer Button */}
                     <div className="flex items-center gap-4 flex-wrap">
                         <div className="flex items-center gap-3 bg-gray-900/80 border border-gray-800 p-2.5 rounded-xl">
                             <span className="text-xs text-gray-400 font-mono">Goals:</span>
@@ -352,28 +348,28 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Car Instrument Cluster / Dashboard Gauges Header */}
+                {/* Instrument Cluster Header */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     
-                    {/* Pod 1: Total Beers Speedometer */}
+                    {/* Pod 1: Beers Speedometer (Violet/Fuchsia scheme) */}
                     <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-cyan-400 uppercase font-bold flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                            Total Beers
+                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-fuchsia-400 uppercase font-bold flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse"></span>
+                            Beers
                         </div>
                         <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
                             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
                                 <defs>
-                                    <linearGradient id="pod-cyan-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#06b6d4" />
-                                        <stop offset="50%" stopColor="#3b82f6" />
-                                        <stop offset="100%" stopColor="#6366f1" />
+                                    <linearGradient id="pod-beers-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#8b5cf6" />
+                                        <stop offset="50%" stopColor="#c084fc" />
+                                        <stop offset="100%" stopColor="#d946ef" />
                                     </linearGradient>
                                 </defs>
                                 <path
                                     d="M 12 60 A 60 60 0 0 1 132 60"
                                     fill="none"
-                                    stroke="url(#pod-cyan-grad)"
+                                    stroke="url(#pod-beers-grad)"
                                     strokeWidth="6"
                                     strokeLinecap="round"
                                 />
@@ -392,25 +388,25 @@ export default function Home() {
                         </div>
                     </div>
 
-                    {/* Pod 2: Breweries Tachometer */}
+                    {/* Pod 2: Breweries Tachometer (Amber/Rose scheme) */}
                     <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-bold flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-amber-500 uppercase font-bold flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                             Breweries
                         </div>
                         <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
                             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
                                 <defs>
-                                    <linearGradient id="pod-emerald-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#d97706" />
-                                        <stop offset="50%" stopColor="#84cc16" />
-                                        <stop offset="100%" stopColor="#22c55e" />
+                                    <linearGradient id="pod-brewery-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#f59e0b" />
+                                        <stop offset="50%" stopColor="#fb7185" />
+                                        <stop offset="100%" stopColor="#f43f5e" />
                                     </linearGradient>
                                 </defs>
                                 <path
                                     d="M 12 60 A 60 60 0 0 1 132 60"
                                     fill="none"
-                                    stroke="url(#pod-emerald-grad)"
+                                    stroke="url(#pod-brewery-grad)"
                                     strokeWidth="6"
                                     strokeLinecap="round"
                                 />
@@ -429,25 +425,26 @@ export default function Home() {
                         </div>
                     </div>
 
-                    {/* Pod 3: Avg Rank Dial */}
+                    {/* Pod 3: Avg Rank Dial (Matching Star Rating Thresholds) */}
                     <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-amber-400 uppercase font-bold flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-yellow-400 uppercase font-bold flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span>
                             Average Rank
                         </div>
                         <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
                             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
                                 <defs>
-                                    <linearGradient id="pod-amber-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#ef4444" />
-                                        <stop offset="50%" stopColor="#f59e0b" />
-                                        <stop offset="100%" stopColor="#eab308" />
+                                    <linearGradient id="pod-rank-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#ef4444" /> {/* Red (<2.0) */}
+                                        <stop offset="40%" stopColor="#f97316" /> {/* Orange (2.0+) */}
+                                        <stop offset="65%" stopColor="#eab308" /> {/* Yellow (3.0+) */}
+                                        <stop offset="100%" stopColor="#22c55e" /> {/* Green (4.0+) */}
                                     </linearGradient>
                                 </defs>
                                 <path
                                     d="M 12 60 A 60 60 0 0 1 132 60"
                                     fill="none"
-                                    stroke="url(#pod-amber-grad)"
+                                    stroke="url(#pod-rank-grad)"
                                     strokeWidth="6"
                                     strokeLinecap="round"
                                 />
