@@ -51,29 +51,37 @@ function StarRating({ rank }: { rank: number | null | string }) {
             <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map((star) => {
                     const diff = numericRank - (star - 1);
+                    const isFull = diff >= 0.75;
+                    const isHalf = diff >= 0.25 && diff < 0.75;
 
-                    if (diff >= 0.75) {
+                    const starPath = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
+
+                    if (isFull) {
                         return (
                             <svg key={star} className="w-4 h-4" viewBox="0 0 24 24" fill={starColor}>
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                <path d={starPath} />
                             </svg>
                         );
                     }
 
-                    if (diff >= 0.25) {
+                    if (isHalf) {
                         return (
-                            <svg key={star} className="w-4 h-4" viewBox="0 0 24 24">
-                                {/* Left half filled */}
-                                <path fill={starColor} d="M12 2v15.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                {/* Right half empty */}
-                                <path fill="#374151" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77V2z" />
-                            </svg>
+                            <div key={star} className="relative w-4 h-4">
+                                {/* Empty background star */}
+                                <svg className="absolute inset-0 w-4 h-4" viewBox="0 0 24 24" fill="#374151">
+                                    <path d={starPath} />
+                                </svg>
+                                {/* Half-filled foreground star clipped to 50% width */}
+                                <svg className="absolute inset-0 w-4 h-4 overflow-hidden" style={{ width: '50%' }} viewBox="0 0 24 24" fill={starColor}>
+                                    <path d={starPath} />
+                                </svg>
+                            </div>
                         );
                     }
 
                     return (
                         <svg key={star} className="w-4 h-4" viewBox="0 0 24 24" fill="#374151">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            <path d={starPath} />
                         </svg>
                     );
                 })}
