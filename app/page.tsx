@@ -3,6 +3,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import BeerGlass from '@/components/BeerGlass';
 export const dynamic = 'force-dynamic';
+export default function Page() {
+    // Goal states for dashboard gauges
+    const [beerMax, setBeerMax] = useState<number>(15000);
+    const [breweryMax, setBreweryMax] = useState<number>(2000);
+    
+    // ... rest of your code
 
 interface Beer {
     id: number;
@@ -265,6 +271,9 @@ export default function Home() {
         return sum / rankedBeers.length;
     }, [beers]);
 
+    const [beerMax, setBeerMax] = useState(15000);
+    const [breweryMax, setBreweryMax] = useState(2000);
+    
     // Gauge Angles & Percentages for Dashboard Cluster
     const beerAngle = Math.min(Math.max((totalBeers / beerMax) * 180 - 90, -90), 90);
     const breweryAngle = Math.min(Math.max((totalBreweries / breweryMax) * 180 - 90, -90), 90);
