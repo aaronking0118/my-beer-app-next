@@ -349,7 +349,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Instrument Cluster Header (Radial tick marks, removed glowing dots, true car dashboard style) */}
+                {/* Instrument Cluster Header (Tick marks precisely matched to the 270-degree arc span) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
                     
                     {/* Gauge 1: Beers */}
@@ -368,16 +368,16 @@ export default function Home() {
                                         <stop offset="100%" stopColor="#1c1917" />
                                     </linearGradient>
                                 </defs>
-                                {/* Radial tick marks pointing outward from center */}
+                                {/* Tick marks matching the 270-degree arc span (-225deg to +45deg) */}
                                 {Array.from({ length: 9 }).map((_, i) => {
                                     const deg = -225 + i * (270 / 8);
                                     return (
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="22"
+                                            y1="19"
                                             x2="60"
-                                            y2="26"
+                                            y2="24"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
@@ -428,9 +428,9 @@ export default function Home() {
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="22"
+                                            y1="19"
                                             x2="60"
-                                            y2="26"
+                                            y2="24"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
@@ -480,9 +480,9 @@ export default function Home() {
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="22"
+                                            y1="19"
                                             x2="60"
-                                            y2="26"
+                                            y2="24"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
