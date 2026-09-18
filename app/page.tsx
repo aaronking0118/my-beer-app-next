@@ -63,7 +63,9 @@ function StarRating({ rank }: { rank: number | null | string }) {
                     if (diff >= 0.25) {
                         return (
                             <svg key={star} className="w-4 h-4" viewBox="0 0 24 24">
+                                {/* Left half filled */}
                                 <path fill={starColor} d="M12 2v15.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                {/* Right half empty */}
                                 <path fill="#374151" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77V2z" />
                             </svg>
                         );
