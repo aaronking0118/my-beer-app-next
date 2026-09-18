@@ -266,13 +266,8 @@ export default function Home() {
     }, [beers]);
 
     // Gauge Angles & Percentages for Dashboard Cluster
-    const totalBeersMax = 10000;
-    const beerPercentage = Math.min(totalBeers / totalBeersMax, 1);
-    const beerAngle = -90 + beerPercentage * 180;
-
-    const breweryMax = 2000;
-    const breweryPercentage = Math.min(filteredBreweriesCount / breweryMax, 1);
-    const breweryAngle = -90 + breweryPercentage * 180;
+    const beerAngle = Math.min(Math.max((totalBeers / beerMax) * 180 - 90, -90), 90);
+    const breweryAngle = Math.min(Math.max((totalBreweries / breweryMax) * 180 - 90, -90), 90);
 
     const rankMax = 5;
     const rankPercentage = Math.min(averageRank / rankMax, 1);
