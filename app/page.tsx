@@ -55,34 +55,31 @@ function StarRating({ rank }: { rank: number | null | string }) {
                     const diff = numericRank - (star - 1);
                     const isFull = diff >= 0.75;
                     const isHalf = diff >= 0.25 && diff < 0.75;
-                    const gradId = `half-star-${star}-${Math.random().toString(36).substring(2, 7)}`;
-
-                    if (isFull) {
-                        return (
-                            <svg key={star} className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill={starColor}>
-                                <path d={starPath} />
-                            </svg>
-                        );
-                    }
-
-                    if (isHalf) {
-                        return (
-                            <svg key={star} className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                                <defs>
-                                    <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="50%" stopColor={starColor} />
-                                        <stop offset="50%" stopColor="#374151" />
-                                    </linearGradient>
-                                </defs>
-                                <path d={starPath} fill={`url(#${gradId})`} />
-                            </svg>
-                        );
-                    }
 
                     return (
-                        <svg key={star} className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#374151">
-                            <path d={starPath} />
-                        </svg>
+                        <div key={star} className="relative w-4 h-4 flex-shrink-0">
+                            {/* Background empty star */}
+                            <svg className="absolute inset-0 w-4 h-4" viewBox="0 0 24 24" fill="#374151">
+                                <path d={starPath} />
+                            </svg>
+                            {/* Full star overlay */}
+                            {isFull && (
+                                <svg className="absolute inset-0 w-4 h-4" viewBox="0 0 24 24" fill={starColor}>
+                                    <path d={starPath} />
+                                </svg>
+                            )}
+                            {/* Half star overlay using CSS clip-path */}
+                            {isHalf && (
+                                <svg 
+                                    className="absolute inset-0 w-4 h-4" 
+                                    viewBox="0 0 24 24" 
+                                    fill={starColor}
+                                    style={{ clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' }}
+                                >
+                                    <path d={starPath} />
+                                </svg>
+                            )}
+                        </div>
                     );
                 })}
             </div>
