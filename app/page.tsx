@@ -19,81 +19,140 @@ interface Beer {
     consumption_date: string | null;
 }
 
-// Helper to get country/state flags
-function getFlagEmoji(country: string | null, state: string | null): string {
-    if (!country) return '🌍';
-    if (country.toLowerCase() === 'usa' || country.toLowerCase() === 'united states') {
-        if (state) {
-            const st = state.trim().toLowerCase();
-            if (st === 'texas' || st === 'tx') return '🤠';
-            if (st === 'colorado' || st === 'co') return '🏔️';
-            if (st === 'illinois' || st === 'il') return '🏙️';
-            if (st === 'california' || st === 'ca') return '🌴';
-            if (st === 'oregon' || st === 'or') return '🌲';
-        }
-        return '🇺🇸';
-    }
-    if (country.toLowerCase() === 'japan') return '🇯🇵';
-    if (country.toLowerCase() === 'germany') return '🇩🇪';
-    if (country.toLowerCase() === 'belgium') return '🇧🇪';
-    if (country.toLowerCase() === 'united kingdom' || country.toLowerCase() === 'uk') return '🇬🇧';
-    if (country.toLowerCase() === 'canada') return '🇨🇦';
-    if (country.toLowerCase() === 'mexico') return '🇲🇽';
-    return '🏳️';
+// Helper to map country names to ISO 2-letter codes for flag CDN images
+function getCountryCode(country: string | null): string {
+    if (!country) return '';
+    const c = country.trim().toLowerCase();
+    if (c === 'usa' || c === 'united states' || c === 'us') return 'us';
+    if (c === 'japan' || c === 'jp') return 'jp';
+    if (c === 'germany' || c === 'de') return 'de';
+    if (c === 'belgium' || c === 'be') return 'be';
+    if (c === 'united kingdom' || c === 'uk' || c === 'gb') return 'gb';
+    if (c === 'canada' || c === 'ca') return 'ca';
+    if (c === 'mexico' || c === 'mx') return 'mx';
+    if (c === 'australia' || c === 'au') return 'au';
+    if (c === 'france' || c === 'fr') return 'fr';
+    if (c === 'netherlands' || c === 'nl') return 'nl';
+    return '';
 }
 
-// Star rating component with red-yellow-green gradient coloring
-function StarRating({ rank }: { rank: number | null }) {
-    if (rank == null) return <span className="text-gray-500 text-xs">--</span>;
+// Star rating component with precise half-star gradient fill
+function StarRating({ rank }: { rank: number | null | string }) {
+    if (rank == null || rank === '') return <span className="text-gray-500 text-xs">--</span>;
     
-    // Gradient color mapping based on 0-5 rank scale
-    let starColor = '#ef4444'; // Red for low
-    if (rank >= 4.0) starColor = '#22c55e'; // Green for high/excellent
-    else if (rank >= 3.0) starColor = '#eab308'; // Yellow/Gold for medium-good
-    else if (rank >= 2.0) starColor = '#f97316'; // Orange
+    const numericRank = typeof rank === 'number' ? rank : parseFloat(rank);
+    if (isNaN(numericRank)) return <span className="text-gray-500 text-xs">--</span>;
+    
+    let starColor = '#ef4444'; // Red
+    if (numericRank >= 4.0) starColor = '#22c55e'; // Green
+    else if (numericRank >= 3.0) starColor = '#eab308'; // Yellow
+    else if (numericRank >= 2.0) starColor = '#f97316'; // Orange
 
     return (
         <div className="flex items-center gap-1.5">
-            <div className="flex text-sm" style={{ color: starColor }}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                    <span key={star}>{star <= Math.round(rank) ? '★' : '☆'}</span>
-                ))}
+            <div className="flex text-sm gap-0.5">
+                {[1, 2, 3, 4, 5].map((star) => {
+                    const diff = numericRank - (star - 1);
+                    
+                    let fillPercentage = 0;
+                    if (diff >= 1) fillPercentage = 100;
+                    else if (diff > 0) fillPercentage = diff * 100;
+
+                    return (
+                        <span key={star} className="relative inline-block text-gray-700">
+                            <span>★</span>
+                            {fillPercentage > 0 && (
+                                <span 
+                                    className="absolute top-0 left-0 overflow-hidden" 
+                                    style={{ width: `${fillPercentage}%`, color: starColor }}
+                                >
+                                    ★
+                                </span>
+                            )}
+                        </span>
+                    );
+                })}
             </div>
-            <span className="text-xs font-semibold text-gray-300">({rank.toFixed(1)})</span>
+            <span className="text-xs font-semibold text-gray-300">({numericRank.toFixed(1)})</span>
         </div>
     );
 }
 
-// Speedometer Gauge Component for ABV / IBU
-function SpeedometerGauge({ value, max, label, unit }: { value: number | null; max: number; label: string; unit: string }) {
-    if (value == null) return <span className="text-gray-500 text-xs">--</span>;
-    
-    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-    
-    // Dynamic color based on value intensity
-    let barColor = '#3b82f6'; // Blue
-    if (label === 'ABV') {
-        if (value > 8) barColor = '#a855f7'; // Purple for high ABV
-        else if (value > 6) barColor = '#3b82f6';
-        else barColor = '#06b6d4';
-    } else {
-        // IBU intensity
-        if (value > 60) barColor = '#ef4444'; // Very bitter
-        else if (value > 30) barColor = '#eab308'; // Moderate
-        else barColor = '#22c55e'; // Mild
+// Dial Speedometer Gauge Component with Check Engine Light overrides for over-limits
+function SpeedometerGauge({ value, max, type }: { value: number | null; max: number; type: 'abv' | 'ibu' }) {
+    if (value == null || isNaN(value)) return <span className="text-gray-500 text-xs">--</span>;
+
+    const numericVal = typeof value === 'number' ? value : parseFloat(String(value));
+
+    // Check Engine Light override for ABV > 10%
+    if (type === 'abv' && numericVal > 10) {
+        return (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/90 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
+                <span className="font-mono font-bold text-xs">⚠️</span>
+                <span className="font-mono font-bold text-xs">{numericVal}%!</span>
+            </div>
+        );
     }
 
-    return (
-        <div className="flex flex-col gap-1 w-28">
-            <div className="flex justify-between text-[10px] text-gray-400 font-mono">
-                <span>{value}{unit}</span>
-                <span className="text-gray-500">max {max}{unit}</span>
+    // Check Engine Light override for IBU > 100
+    if (type === 'ibu' && numericVal > 100) {
+        return (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/90 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse">
+                <span className="text-xs">🌿</span>
+                <span className="font-mono font-bold text-xs">{numericVal} IBU!</span>
             </div>
-            <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden p-[1px] border border-gray-700">
+        );
+    }
+
+    const clampedVal = Math.min(Math.max(numericVal, 0), max);
+    const percentage = clampedVal / max;
+    const angle = -90 + percentage * 180;
+
+    const unit = type === 'abv' ? '%' : ' IBU';
+    const gradientId = `gauge-gradient-${type}-${Math.random().toString(36).substring(2, 9)}`;
+
+    return (
+        <div className="flex flex-col items-center">
+            <div className="relative w-16 h-9 bg-gray-900 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 64 36">
+                    <defs>
+                        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                            {type === 'abv' ? (
+                                <>
+                                    <stop offset="0%" stopColor="#06b6d4" />     {/* Cyan */}
+                                    <stop offset="50%" stopColor="#3b82f6" />    {/* Blue */}
+                                    <stop offset="100%" stopColor="#581c87" />   {/* Dark Purple */}
+                                </>
+                            ) : (
+                                <>
+                                    <stop offset="0%" stopColor="#d97706" />     {/* Earthy Gold/Brown */}
+                                    <stop offset="50%" stopColor="#84cc16" />    {/* Olive/Light Green */}
+                                    <stop offset="100%" stopColor="#22c55e" />   {/* Bright Green */}
+                                </>
+                            )}
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M 6 30 A 26 26 0 0 1 58 30"
+                        fill="none"
+                        stroke={`url(#${gradientId})`}
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                    />
+                </svg>
+
                 <div 
-                    className="h-full rounded-full transition-all duration-500" 
-                    style={{ width: `${percentage}%`, backgroundColor: barColor }}
-                ></div>
+                    className="absolute bottom-0 w-0.5 h-7 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow"
+                    style={{ transform: `rotate(${angle}deg)` }}
+                >
+                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-red-600 rounded-full border border-white"></div>
+                </div>
+            </div>
+
+            <div className="w-20 flex justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-0.5">
+                <span>0</span>
+                <span className="font-bold text-white">{numericVal}{unit}</span>
+                <span>{max}</span>
             </div>
         </div>
     );
@@ -285,36 +344,48 @@ export default function Home() {
                                         <td colSpan={8} className="text-center py-12 text-gray-400">No beers found.</td>
                                     </tr>
                                 ) : (
-                                    beers.map((beer) => (
-                                        <tr key={beer.id} className="hover:bg-[#1a2336] transition-colors">
-                                            <td className="p-4 font-mono text-blue-400">#{beer.beer_number}</td>
-                                            <td className="p-4">
-                                                <div className="w-8 flex justify-center">
-                                                    <BeerGlass srm={beer.srm} />
-                                                </div>
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="font-bold text-white">{beer.beer_name}</div>
-                                                <div className="text-xs text-gray-400">{beer.brewery_name}</div>
-                                            </td>
-                                            <td className="p-4 text-gray-300">{beer.beer_style || '--'}</td>
-                                            <td className="p-4 text-gray-300">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-lg">{getFlagEmoji(beer.country, beer.state)}</span>
-                                                    <span>{beer.country ? `${beer.country}${beer.state ? `, ${beer.state}` : ''}` : '--'}</span>
-                                                </div>
-                                            </td>
-                                            <td className="p-4">
-                                                <StarRating rank={beer.rank} />
-                                            </td>
-                                            <td className="p-4">
-                                                <SpeedometerGauge value={beer.abv} max={15} label="ABV" unit="%" />
-                                            </td>
-                                            <td className="p-4">
-                                                <SpeedometerGauge value={beer.ibu} max={100} label="IBU" unit=" IBUs" />
-                                            </td>
-                                        </tr>
-                                    ))
+                                    beers.map((beer) => {
+                                        const countryCode = getCountryCode(beer.country);
+                                        return (
+                                            <tr key={beer.id} className="hover:bg-[#1a2336] transition-colors">
+                                                <td className="p-4 font-mono text-blue-400">#{beer.beer_number}</td>
+                                                <td className="p-4">
+                                                    <div className="w-8 flex justify-center">
+                                                        <BeerGlass srm={beer.srm} />
+                                                    </div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="font-bold text-white">{beer.beer_name}</div>
+                                                    <div className="text-xs text-gray-400">{beer.brewery_name}</div>
+                                                </td>
+                                                <td className="p-4 text-gray-300">{beer.beer_style || '--'}</td>
+                                                <td className="p-4 text-gray-300">
+                                                    <div className="flex items-center gap-2">
+                                                        {countryCode ? (
+                                                            <img 
+                                                                src={`https://flagcdn.com/24x18/${countryCode}.png`} 
+                                                                alt={beer.country || 'Flag'} 
+                                                                className="w-5 h-3.5 object-cover rounded shadow-sm border border-gray-700" 
+                                                            />
+                                                        ) : (
+                                                            <span className="w-5 h-3.5 flex items-center justify-center text-xs">🌐</span>
+                                                        )}
+                                                        <span className="font-medium text-white">{beer.country || '--'}</span>
+                                                    </div>
+                                                    {beer.state && <div className="text-xs text-gray-400 mt-0.5 ml-7">{beer.state}</div>}
+                                                </td>
+                                                <td className="p-4">
+                                                    <StarRating rank={beer.rank} />
+                                                </td>
+                                                <td className="p-4">
+                                                    <SpeedometerGauge value={beer.abv} max={10} type="abv" />
+                                                </td>
+                                                <td className="p-4">
+                                                    <SpeedometerGauge value={beer.ibu} max={100} type="ibu" />
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
