@@ -97,7 +97,7 @@ function StarRating({ rank }: { rank: number | null | string }) {
     );
 }
 
-function SpeedometerGauge({ value, max, type }: { value: number | null; max: number; type: 'abv' | 'ibu' }) {
+function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; max: number; type: 'abv' | 'ibu'; beerId: number }) {
     if (value == null || isNaN(value)) return <span className="text-gray-500 text-xs">--</span>;
 
     const numericVal = typeof value === 'number' ? value : parseFloat(String(value));
@@ -132,7 +132,7 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
         ? (Number.isInteger(numericVal) ? `${numericVal}%` : `${numericVal.toFixed(1)}%`)
         : `${Math.round(numericVal)}`;
 
-    const gradientId = `gauge-gradient-${type}`;
+    const gradientId = `gauge-gradient-${beerId}-${type}`;
 
     return (
         <div className="flex flex-col items-center">
@@ -405,10 +405,10 @@ export default function Home() {
                                                     <StarRating rank={beer.rank} />
                                                 </td>
                                                 <td className="p-4">
-                                                    <SpeedometerGauge value={beer.abv} max={10} type="abv" />
+                                                    <SpeedometerGauge value={beer.abv} max={10} type="abv" beerId={beer.id} />
                                                 </td>
                                                 <td className="p-4">
-                                                    <SpeedometerGauge value={beer.ibu} max={100} type="ibu" />
+                                                    <SpeedometerGauge value={beer.ibu} max={100} type="ibu" beerId={beer.id} />
                                                 </td>
                                             </tr>
                                         );
