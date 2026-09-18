@@ -60,6 +60,9 @@ function StarRating({ rank }: { rank: number | null | string }) {
         }
     }
 
+    // Format rank: whole number with no decimal, or decimal if half
+    const formattedRank = Number.isInteger(numericRank) ? numericRank.toString() : numericRank.toFixed(1);
+
     return (
         <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
@@ -74,11 +77,9 @@ function StarRating({ rank }: { rank: number | null | string }) {
                     if (type === 'half') {
                         return (
                             <div key={index} className="relative w-4 h-4 flex-shrink-0">
-                                {/* Background empty star */}
                                 <svg className="absolute inset-0 w-4 h-4" viewBox="0 0 24 24" fill="#374151">
                                     <path d={starPath} />
                                 </svg>
-                                {/* Foreground left-half colored star using overflow clipping */}
                                 <svg className="absolute inset-0 w-4 h-4 overflow-hidden" viewBox="0 0 24 24" style={{ clipPath: 'inset(0 50% 0 0)' }} fill={starColor}>
                                     <path d={starPath} />
                                 </svg>
@@ -92,7 +93,7 @@ function StarRating({ rank }: { rank: number | null | string }) {
                     );
                 })}
             </div>
-            <span className="text-xs font-semibold text-gray-300">({numericRank.toFixed(1)})</span>
+            <span className="text-xs font-semibold text-gray-300">{formattedRank}</span>
         </div>
     );
 }
@@ -106,7 +107,7 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
         return (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/90 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
                 <span className="font-mono font-bold text-xs">??</span>
-                <span className="font-mono font-bold text-xs">{numericVal}%!</span>
+                <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%!</span>
             </div>
         );
     }
@@ -115,7 +116,7 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
         return (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/90 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse">
                 <span className="text-xs">??</span>
-                <span className="font-mono font-bold text-xs">{numericVal} IBU!</span>
+                <span className="font-mono font-bold text-xs">{Math.round(numericVal)}!</span>
             </div>
         );
     }
@@ -124,7 +125,10 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
     const percentage = clampedVal / max;
     const angle = -90 + percentage * 180;
 
-    const unit = type === 'abv' ? '%' : ' IBU';
+    const formattedVal = type === 'abv' 
+        ? (Number.isInteger(numericVal) ? `${numericVal}%` : `${numericVal.toFixed(1)}%`)
+        : `${Math.round(numericVal)}`;
+
     const gradientId = `gauge-gradient-${type}-${Math.random().toString(36).substring(2, 9)}`;
 
     return (
@@ -158,16 +162,16 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
                 </svg>
 
                 <div 
-                    className="absolute bottom-0 w-0.5 h-7 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow"
+                    className="absolute bottom-0 w-0.5 h-7 bg-black origin-bottom transition-transform duration-500 z-20 drop-shadow"
                     style={{ transform: `rotate(${angle}deg)` }}
                 >
-                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-red-600 rounded-full border border-white"></div>
+                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-black rounded-full border border-gray-600"></div>
                 </div>
             </div>
 
             <div className="w-20 flex justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-0.5">
                 <span>0</span>
-                <span className="font-bold text-white">{numericVal}{unit}</span>
+                <span className="font-bold text-white">{formattedVal}</span>
                 <span>{max}</span>
             </div>
         </div>
@@ -266,7 +270,10 @@ export default function Home() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-6">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                            ?? Aaron&apos;s Great Beer Adventure
+                            <span className="w-8 h-8 flex items-center justify-center">
+                                <BeerGlass srm={6} />
+                            </span>
+                            Aaron&apos;s Great Beer Adventure
                         </h1>
                         <p className="text-gray-400 text-sm mt-1">
                             {totalBeers.toLocaleString()}+ Beers and Counting
@@ -337,7 +344,7 @@ export default function Home() {
                             <thead>
                                 <tr className="border-b border-gray-800 text-xs text-gray-400 uppercase tracking-wider bg-[#161f33]">
                                     <th className="p-4">Badge #</th>
-                                    <th className="p-4">Glass</th>
+                                    <th className="p-4 w-16"></th>
                                     <th className="p-4">Beer / Brewery</th>
                                     <th className="p-4">Style</th>
                                     <th className="p-4">Origin</th>
