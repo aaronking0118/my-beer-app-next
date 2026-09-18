@@ -581,7 +581,7 @@ export default function Home() {
                                                 <td className="p-4 font-mono text-blue-400">#{beer.beer_number}</td>
                                                 <td className="p-4">
                                                     <div className="w-8 flex justify-center">
-                                                        <BeerGlass srm={beer.srm} />
+                                                        <BeerGlass srm={beer.srm} style={beer.beer_style} />
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
