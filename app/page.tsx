@@ -226,15 +226,10 @@ export default function Home() {
     const [srm, setSrm] = useState('');
     const [tastingNotes, setTastingNotes] = useState('');
     
-    const [beerMax, setBeerMax] = useState(15000); // Or whatever your target is
+    // Single source of truth for your goal sliders/inputs
+    const [beerMax, setBeerMax] = useState(15000);
     const [breweryMax, setBreweryMax] = useState(2000);
-    const [isEditingGoals, setIsEditingGoals] = useState(false); // To toggle inputs on/off cleanly
-
-    // For Total Beers needle angle (-90deg to 90deg scale)
-    const beerAngle = Math.min(Math.max((totalBeers / beerMax) * 180 - 90, -90), 90);
-
-    // For Breweries needle angle
-    const breweryAngle = Math.min(Math.max((totalBreweries / breweryMax) * 180 - 90, -90), 90);
+    const [isEditingGoals, setIsEditingGoals] = useState(false);
 
     const fetchBeers = async () => {
         setLoading(true);
@@ -270,9 +265,6 @@ export default function Home() {
         const sum = rankedBeers.reduce((acc, b) => acc + Number(b.rank), 0);
         return sum / rankedBeers.length;
     }, [beers]);
-
-    const [beerMax, setBeerMax] = useState(15000);
-    const [breweryMax, setBreweryMax] = useState(2000);
     
     // Gauge Angles & Percentages for Dashboard Cluster
     const beerAngle = Math.min(Math.max((totalBeers / beerMax) * 180 - 90, -90), 90);
