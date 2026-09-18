@@ -186,7 +186,6 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
                 </div>
             </div>
 
-            {/* Perfectly centered value text between 0 and max */}
             <div className="w-28 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
                 <span className="w-6 text-left">0</span>
                 <span className="font-bold text-white text-xs text-center flex-1">{formattedVal}</span>
@@ -252,7 +251,6 @@ export default function Home() {
         return sum / rankedBeers.length;
     }, [beers]);
     
-    // 270 degree calculations for header dashboard gauges (-225deg start + 270deg sweep)
     const beerPercentage = Math.min(Math.max(totalBeers / beerMax, 0), 1);
     const beerAngle = -225 + beerPercentage * 270;
 
@@ -351,7 +349,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Instrument Cluster Header (Large Car Dashboard Style without boxes, tick marks, and contained needles) */}
+                {/* Instrument Cluster Header (Clean car gauges without min/max labels, perfectly centered values, and ticks along the arc) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
                     
                     {/* Gauge 1: Beers */}
@@ -371,16 +369,16 @@ export default function Home() {
                                         <stop offset="100%" stopColor="#1c1917" />
                                     </linearGradient>
                                 </defs>
-                                {/* Tick marks */}
+                                {/* Tick marks positioned right along the outside edge of the arc */}
                                 {Array.from({ length: 9 }).map((_, i) => {
                                     const deg = -225 + i * (270 / 8);
                                     return (
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="10"
+                                            y1="22"
                                             x2="60"
-                                            y2="15"
+                                            y2="26"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
@@ -389,26 +387,23 @@ export default function Home() {
                                     );
                                 })}
                                 <path
-                                    d="M 24.5 95.5 A 44 44 0 1 1 95.5 95.5"
+                                    d="M 28.5 91.5 A 44 44 0 1 1 91.5 91.5"
                                     fill="none"
                                     stroke="url(#pod-beers-circle)"
                                     strokeWidth="7"
                                     strokeLinecap="round"
                                 />
                             </svg>
-                            {/* Needle kept safely inside the gauge arc */}
                             <div 
                                 className="absolute inset-0 origin-center transition-transform duration-700 ease-out z-20 pointer-events-none"
                                 style={{ transform: `rotate(${beerAngle}deg)` }}
                             >
-                                <div className="absolute top-5 left-1/2 -translate-x-1/2 w-0.5 h-14 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
+                                <div className="absolute top-7 left-1/2 -translate-x-1/2 w-0.5 h-13 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
                             </div>
                             <div className="absolute w-5 h-5 bg-gradient-to-br from-gray-200 to-gray-600 rounded-full border-2 border-gray-900 shadow-lg z-30"></div>
                         </div>
-                        <div className="w-48 flex items-center justify-between text-xs text-gray-400 font-mono mt-3 px-2">
-                            <span>0</span>
-                            <span className="font-extrabold text-white text-lg tracking-tight">{totalBeers.toLocaleString()}</span>
-                            <span>{beerMax.toLocaleString()}</span>
+                        <div className="w-48 flex items-center justify-center text-center mt-3">
+                            <span className="font-extrabold text-white text-xl tracking-tight font-mono">{totalBeers.toLocaleString()}</span>
                         </div>
                     </div>
 
@@ -435,9 +430,9 @@ export default function Home() {
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="10"
+                                            y1="22"
                                             x2="60"
-                                            y2="15"
+                                            y2="26"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
@@ -446,7 +441,7 @@ export default function Home() {
                                     );
                                 })}
                                 <path
-                                    d="M 24.5 95.5 A 44 44 0 1 1 95.5 95.5"
+                                    d="M 28.5 91.5 A 44 44 0 1 1 91.5 91.5"
                                     fill="none"
                                     stroke="url(#pod-brewery-circle)"
                                     strokeWidth="7"
@@ -457,14 +452,12 @@ export default function Home() {
                                 className="absolute inset-0 origin-center transition-transform duration-700 ease-out z-20 pointer-events-none"
                                 style={{ transform: `rotate(${breweryAngle}deg)` }}
                             >
-                                <div className="absolute top-5 left-1/2 -translate-x-1/2 w-0.5 h-14 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
+                                <div className="absolute top-7 left-1/2 -translate-x-1/2 w-0.5 h-13 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
                             </div>
                             <div className="absolute w-5 h-5 bg-gradient-to-br from-gray-200 to-gray-600 rounded-full border-2 border-gray-900 shadow-lg z-30"></div>
                         </div>
-                        <div className="w-48 flex items-center justify-between text-xs text-gray-400 font-mono mt-3 px-2">
-                            <span>0</span>
-                            <span className="font-extrabold text-white text-lg tracking-tight">{totalBreweries.toLocaleString()}</span>
-                            <span>{breweryMax.toLocaleString()}</span>
+                        <div className="w-48 flex items-center justify-center text-center mt-3">
+                            <span className="font-extrabold text-white text-xl tracking-tight font-mono">{totalBreweries.toLocaleString()}</span>
                         </div>
                     </div>
 
@@ -490,9 +483,9 @@ export default function Home() {
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="10"
+                                            y1="22"
                                             x2="60"
-                                            y2="15"
+                                            y2="26"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
@@ -501,7 +494,7 @@ export default function Home() {
                                     );
                                 })}
                                 <path
-                                    d="M 24.5 95.5 A 44 44 0 1 1 95.5 95.5"
+                                    d="M 28.5 91.5 A 44 44 0 1 1 91.5 91.5"
                                     fill="none"
                                     stroke="url(#pod-rank-circle)"
                                     strokeWidth="7"
@@ -512,14 +505,12 @@ export default function Home() {
                                 className="absolute inset-0 origin-center transition-transform duration-700 ease-out z-20 pointer-events-none"
                                 style={{ transform: `rotate(${rankAngle}deg)` }}
                             >
-                                <div className="absolute top-5 left-1/2 -translate-x-1/2 w-0.5 h-14 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
+                                <div className="absolute top-7 left-1/2 -translate-x-1/2 w-0.5 h-13 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
                             </div>
                             <div className="absolute w-5 h-5 bg-gradient-to-br from-gray-200 to-gray-600 rounded-full border-2 border-gray-900 shadow-lg z-30"></div>
                         </div>
-                        <div className="w-48 flex items-center justify-between text-xs text-gray-400 font-mono mt-3 px-2">
-                            <span>0.0</span>
-                            <span className="font-extrabold text-white text-lg tracking-tight">{averageRank.toFixed(2)}</span>
-                            <span>5.0</span>
+                        <div className="w-48 flex items-center justify-center text-center mt-3">
+                            <span className="font-extrabold text-white text-xl tracking-tight font-mono">{averageRank.toFixed(2)}</span>
                         </div>
                     </div>
 
