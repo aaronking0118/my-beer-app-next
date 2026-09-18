@@ -19,7 +19,6 @@ interface Beer {
     consumption_date: string | null;
 }
 
-// Helper to map country names to ISO 2-letter codes for flag CDN images
 function getCountryCode(country: string | null): string {
     if (!country) return '';
     const c = country.trim().toLowerCase();
@@ -36,17 +35,16 @@ function getCountryCode(country: string | null): string {
     return '';
 }
 
-// Star rating component using explicit Full, Half, and Empty SVG icons
 function StarRating({ rank }: { rank: number | null | string }) {
     if (rank == null || rank === '') return <span className="text-gray-500 text-xs">--</span>;
     
     const numericRank = typeof rank === 'number' ? rank : parseFloat(rank);
     if (isNaN(numericRank)) return <span className="text-gray-500 text-xs">--</span>;
     
-    let starColor = '#ef4444'; // Red
-    if (numericRank >= 4.0) starColor = '#22c55e'; // Green
-    else if (numericRank >= 3.0) starColor = '#eab308'; // Yellow
-    else if (numericRank >= 2.0) starColor = '#f97316'; // Orange
+    let starColor = '#ef4444';
+    if (numericRank >= 4.0) starColor = '#22c55e';
+    else if (numericRank >= 3.0) starColor = '#eab308';
+    else if (numericRank >= 2.0) starColor = '#f97316';
 
     return (
         <div className="flex items-center gap-1.5">
@@ -54,7 +52,6 @@ function StarRating({ rank }: { rank: number | null | string }) {
                 {[1, 2, 3, 4, 5].map((star) => {
                     const diff = numericRank - (star - 1);
 
-                    // Full Star
                     if (diff >= 0.75) {
                         return (
                             <svg key={star} className="w-4 h-4" viewBox="0 0 24 24" fill={starColor}>
@@ -63,19 +60,15 @@ function StarRating({ rank }: { rank: number | null | string }) {
                         );
                     }
 
-                    // Half Star
                     if (diff >= 0.25) {
                         return (
                             <svg key={star} className="w-4 h-4" viewBox="0 0 24 24">
-                                {/* Left Half Filled */}
                                 <path fill={starColor} d="M12 2v15.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                {/* Right Half Dark Empty */}
                                 <path fill="#374151" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77V2z" />
                             </svg>
                         );
                     }
 
-                    // Empty Star
                     return (
                         <svg key={star} className="w-4 h-4" viewBox="0 0 24 24" fill="#374151">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -88,27 +81,24 @@ function StarRating({ rank }: { rank: number | null | string }) {
     );
 }
 
-// Dial Speedometer Gauge Component with Check Engine Light overrides for over-limits
 function SpeedometerGauge({ value, max, type }: { value: number | null; max: number; type: 'abv' | 'ibu' }) {
     if (value == null || isNaN(value)) return <span className="text-gray-500 text-xs">--</span>;
 
     const numericVal = typeof value === 'number' ? value : parseFloat(String(value));
 
-    // Check Engine Light override for ABV > 10%
     if (type === 'abv' && numericVal > 10) {
         return (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/90 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
-                <span className="font-mono font-bold text-xs">⚠️</span>
+                <span className="font-mono font-bold text-xs">??</span>
                 <span className="font-mono font-bold text-xs">{numericVal}%!</span>
             </div>
         );
     }
 
-    // Check Engine Light override for IBU > 100
     if (type === 'ibu' && numericVal > 100) {
         return (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/90 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse">
-                <span className="text-xs">🌿</span>
+                <span className="text-xs">??</span>
                 <span className="font-mono font-bold text-xs">{numericVal} IBU!</span>
             </div>
         );
@@ -129,15 +119,15 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
                         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                             {type === 'abv' ? (
                                 <>
-                                    <stop offset="0%" stopColor="#06b6d4" />     {/* Cyan */}
-                                    <stop offset="50%" stopColor="#3b82f6" />    {/* Blue */}
-                                    <stop offset="100%" stopColor="#581c87" />   {/* Dark Purple */}
+                                    <stop offset="0%" stopColor="#06b6d4" />
+                                    <stop offset="50%" stopColor="#3b82f6" />
+                                    <stop offset="100%" stopColor="#581c87" />
                                 </>
                             ) : (
                                 <>
-                                    <stop offset="0%" stopColor="#d97706" />     {/* Earthy Gold/Brown */}
-                                    <stop offset="50%" stopColor="#84cc16" />    {/* Olive/Light Green */}
-                                    <stop offset="100%" stopColor="#22c55e" />   {/* Bright Green */}
+                                    <stop offset="0%" stopColor="#d97706" />
+                                    <stop offset="50%" stopColor="#84cc16" />
+                                    <stop offset="100%" stopColor="#22c55e" />
                                 </>
                             )}
                         </linearGradient>
@@ -257,11 +247,10 @@ export default function Home() {
         <main className="min-h-screen bg-[#0b0f19] text-gray-100 p-6 md:p-10 font-sans">
             <div className="max-w-7xl mx-auto space-y-8">
                 
-                {/* Header Section */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-6">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                            🍺 Aaron&apos;s Great Beer Adventure
+                            ?? Aaron&apos;s Great Beer Adventure
                         </h1>
                         <p className="text-gray-400 text-sm mt-1">
                             {totalBeers.toLocaleString()}+ Beers and Counting
@@ -275,7 +264,6 @@ export default function Home() {
                     </button>
                 </div>
 
-                {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-[#111827] border border-gray-800 p-6 rounded-2xl shadow-sm">
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Beers</p>
@@ -293,7 +281,6 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Filter Controls */}
                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#111827] p-4 rounded-2xl border border-gray-800">
                     <input
                         type="text"
@@ -328,7 +315,6 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Beer Table */}
                 <div className="bg-[#111827] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -378,7 +364,7 @@ export default function Home() {
                                                                 className="w-5 h-3.5 object-cover rounded shadow-sm border border-gray-700" 
                                                             />
                                                         ) : (
-                                                            <span className="w-5 h-3.5 flex items-center justify-center text-xs">🌐</span>
+                                                            <span className="w-5 h-3.5 flex items-center justify-center text-xs">??</span>
                                                         )}
                                                         <span className="font-medium text-white">{beer.country || '--'}</span>
                                                     </div>
@@ -404,7 +390,6 @@ export default function Home() {
 
             </div>
 
-            {/* Add Beer Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
