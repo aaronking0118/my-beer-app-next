@@ -36,7 +36,7 @@ function getCountryCode(country: string | null): string {
     return '';
 }
 
-// Star rating component using clean SVG gradients for precise partial fills
+// Star rating component using stable SVG gradients for precise partial fills
 function StarRating({ rank }: { rank: number | null | string }) {
     if (rank == null || rank === '') return <span className="text-gray-500 text-xs">--</span>;
     
@@ -57,7 +57,8 @@ function StarRating({ rank }: { rank: number | null | string }) {
                     if (diff >= 1) fillPercentage = 100;
                     else if (diff > 0) fillPercentage = diff * 100;
 
-                    const gradientId = `star-grad-${star}-${Math.random().toString(36).substring(2, 7)}`;
+                    // Stable gradient ID based on rank and star position to avoid hydration errors
+                    const gradientId = `star-grad-${numericRank}-${star}`;
 
                     return (
                         <svg key={star} className="w-4 h-4" viewBox="0 0 24 24">
