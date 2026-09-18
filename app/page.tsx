@@ -46,6 +46,8 @@ function StarRating({ rank }: { rank: number | null | string }) {
     else if (numericRank >= 3.0) starColor = '#eab308';
     else if (numericRank >= 2.0) starColor = '#f97316';
 
+    const starPath = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
+
     return (
         <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
@@ -53,12 +55,11 @@ function StarRating({ rank }: { rank: number | null | string }) {
                     const diff = numericRank - (star - 1);
                     const isFull = diff >= 0.75;
                     const isHalf = diff >= 0.25 && diff < 0.75;
-
-                    const starPath = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
+                    const gradId = `half-star-${star}-${Math.random().toString(36).substring(2, 7)}`;
 
                     if (isFull) {
                         return (
-                            <svg key={star} className="w-4 h-4" viewBox="0 0 24 24" fill={starColor}>
+                            <svg key={star} className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill={starColor}>
                                 <path d={starPath} />
                             </svg>
                         );
@@ -66,21 +67,20 @@ function StarRating({ rank }: { rank: number | null | string }) {
 
                     if (isHalf) {
                         return (
-                            <div key={star} className="relative w-4 h-4">
-                                {/* Empty background star */}
-                                <svg className="absolute inset-0 w-4 h-4" viewBox="0 0 24 24" fill="#374151">
-                                    <path d={starPath} />
-                                </svg>
-                                {/* Half-filled foreground star clipped to 50% width */}
-                                <svg className="absolute inset-0 w-4 h-4 overflow-hidden" style={{ width: '50%' }} viewBox="0 0 24 24" fill={starColor}>
-                                    <path d={starPath} />
-                                </svg>
-                            </div>
+                            <svg key={star} className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                                <defs>
+                                    <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="50%" stopColor={starColor} />
+                                        <stop offset="50%" stopColor="#374151" />
+                                    </linearGradient>
+                                </defs>
+                                <path d={starPath} fill={`url(#${gradId})`} />
+                            </svg>
                         );
                     }
 
                     return (
-                        <svg key={star} className="w-4 h-4" viewBox="0 0 24 24" fill="#374151">
+                        <svg key={star} className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#374151">
                             <path d={starPath} />
                         </svg>
                     );
