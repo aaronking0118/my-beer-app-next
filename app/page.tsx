@@ -140,7 +140,8 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     const clampedVal = Math.min(Math.max(numericVal, 0), max);
     const percentage = clampedVal / max;
-    const angle = -90 + percentage * 180;
+    // 270 degree arc: starts at -225 deg and sweeps 270 deg
+    const angle = -225 + percentage * 270;
 
     const formattedVal = type === 'abv' 
         ? (Number.isInteger(numericVal) ? `${numericVal}%` : `${numericVal.toFixed(1)}%`)
@@ -150,48 +151,49 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     return (
         <div className="flex flex-col items-center">
-            <div className="relative w-16 flex flex-col items-center">
-                <div className="relative w-16 h-9 bg-gray-900 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 64 36">
-                        <defs>
-                            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                                {type === 'abv' ? (
-                                    <>
-                                        <stop offset="0%" stopColor="#06b6d4" />
-                                        <stop offset="50%" stopColor="#3b82f6" />
-                                        <stop offset="100%" stopColor="#581c87" />
-                                    </>
-                                ) : (
-                                    <>
-                                        <stop offset="0%" stopColor="#d97706" />
-                                        <stop offset="50%" stopColor="#84cc16" />
-                                        <stop offset="100%" stopColor="#22c55e" />
-                                    </>
-                                )}
-                            </linearGradient>
-                        </defs>
-                        <path
-                            d="M 6 30 A 26 26 0 0 1 58 30"
-                            fill="none"
-                            stroke={`url(#${gradientId})`}
-                            strokeWidth="4"
-                            strokeLinecap="round"
-                        />
-                    </svg>
+            <div className="relative w-14 h-14 flex items-center justify-center bg-gray-950 rounded-full border border-gray-700 shadow-inner">
+                <svg className="absolute inset-0 w-full h-full p-1" viewBox="0 0 36 36">
+                    <defs>
+                        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+                            {type === 'abv' ? (
+                                <>
+                                    <stop offset="0%" stopColor="#06b6d4" />
+                                    <stop offset="50%" stopColor="#3b82f6" />
+                                    <stop offset="100%" stopColor="#581c87" />
+                                </>
+                            ) : (
+                                <>
+                                    <stop offset="0%" stopColor="#d97706" />
+                                    <stop offset="50%" stopColor="#84cc16" />
+                                    <stop offset="100%" stopColor="#22c55e" />
+                                </>
+                            )}
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M 9.5 30.5 A 13 13 0 1 1 26.5 30.5"
+                        fill="none"
+                        stroke={`url(#${gradientId})`}
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                    />
+                </svg>
 
-                    <div 
-                        className="absolute bottom-0 w-0.5 h-7 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] left-1/2 -translate-x-1/2"
-                        style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
-                    >
-                        <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900"></div>
-                    </div>
+                <div 
+                    className="absolute w-0.5 h-6 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] top-4 left-1/2 -translate-x-1/2"
+                    style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
+                >
+                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900"></div>
+                </div>
+
+                <div className="absolute inset-0 flex items-center justify-center pt-2">
+                    <span className="font-bold text-[10px] text-white font-mono tracking-tighter">{formattedVal}</span>
                 </div>
             </div>
 
-            <div className="w-24 flex items-center justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-1 relative">
+            <div className="w-20 flex items-center justify-between text-[8px] text-gray-400 font-mono mt-1 px-1">
                 <span>0</span>
-                <span className="absolute left-1/2 -translate-x-1/2 font-bold text-white text-center">{formattedVal}</span>
-                <span className="ml-auto">{max}</span>
+                <span>{max}</span>
             </div>
         </div>
     );
@@ -253,12 +255,16 @@ export default function Home() {
         return sum / rankedBeers.length;
     }, [beers]);
     
-    const beerAngle = Math.min(Math.max((totalBeers / beerMax) * 180 - 90, -90), 90);
-    const breweryAngle = Math.min(Math.max((totalBreweries / breweryMax) * 180 - 90, -90), 90);
+    // 270 degree calculations for header dashboard gauges (-225deg start + 270deg sweep)
+    const beerPercentage = Math.min(Math.max(totalBeers / beerMax, 0), 1);
+    const beerAngle = -225 + beerPercentage * 270;
+
+    const breweryPercentage = Math.min(Math.max(totalBreweries / breweryMax, 0), 1);
+    const breweryAngle = -225 + breweryPercentage * 270;
 
     const rankMax = 5;
-    const rankPercentage = Math.min(averageRank / rankMax, 1);
-    const rankAngle = -90 + rankPercentage * 180;
+    const rankPercentage = Math.min(Math.max(averageRank / rankMax, 0), 1);
+    const rankAngle = -225 + rankPercentage * 270;
 
     const handleAddBeer = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -348,119 +354,119 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Instrument Cluster Header */}
+                {/* Instrument Cluster Header (270° Circular Gauges) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     
-                    {/* Pod 1: Beers Speedometer (Beer SRM Gradient scheme) */}
+                    {/* Pod 1: Beers Circular Gauge (Beer SRM Gradient) */}
                     <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
                         <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-gray-400 uppercase font-bold flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse"></span>
                             Beers
                         </div>
-                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+                        <div className="mt-5 relative w-28 h-28 bg-gray-950 rounded-full border border-gray-700 overflow-hidden flex items-center justify-center shadow-inner">
+                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
                                 <defs>
-                                    <linearGradient id="pod-beers-srm" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#fef08a" /> {/* Pale Straw */}
-                                        <stop offset="30%" stopColor="#f59e0b" /> {/* Golden Amber */}
-                                        <stop offset="65%" stopColor="#b45309" /> {/* Deep Copper */}
-                                        <stop offset="85%" stopColor="#78350f" /> {/* Dark Brown */}
-                                        <stop offset="100%" stopColor="#1c1917" /> {/* Stout Black */}
+                                    <linearGradient id="pod-beers-circle" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#fef08a" />
+                                        <stop offset="30%" stopColor="#f59e0b" />
+                                        <stop offset="65%" stopColor="#b45309" />
+                                        <stop offset="85%" stopColor="#78350f" />
+                                        <stop offset="100%" stopColor="#1c1917" />
                                     </linearGradient>
                                 </defs>
                                 <path
-                                    d="M 12 60 A 60 60 0 0 1 132 60"
+                                    d="M 26 82.4 A 36 36 0 1 1 74 82.4"
                                     fill="none"
-                                    stroke="url(#pod-beers-srm)"
+                                    stroke="url(#pod-beers-circle)"
                                     strokeWidth="6"
                                     strokeLinecap="round"
                                 />
                             </svg>
                             <div 
-                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
+                                className="absolute w-1 h-14 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] top-10 left-1/2 -translate-x-1/2"
                                 style={{ transform: `translateX(-50%) rotate(${beerAngle}deg)` }}
                             >
                                 <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
                             </div>
                         </div>
-                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                        <div className="w-36 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-2 px-1">
                             <span>0</span>
                             <span className="font-extrabold text-white text-base tracking-tight">{totalBeers.toLocaleString()}</span>
                             <span>{beerMax.toLocaleString()}</span>
                         </div>
                     </div>
 
-                    {/* Pod 2: Breweries Tachometer (Beer SRM Gradient scheme) */}
+                    {/* Pod 2: Breweries Circular Gauge (Beer SRM Gradient) */}
                     <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
                         <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-gray-400 uppercase font-bold flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse"></span>
                             Breweries
                         </div>
-                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+                        <div className="mt-5 relative w-28 h-28 bg-gray-950 rounded-full border border-gray-700 overflow-hidden flex items-center justify-center shadow-inner">
+                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
                                 <defs>
-                                    <linearGradient id="pod-brewery-srm" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#fef08a" /> {/* Pale Straw */}
-                                        <stop offset="30%" stopColor="#f59e0b" /> {/* Golden Amber */}
-                                        <stop offset="65%" stopColor="#b45309" /> {/* Deep Copper */}
-                                        <stop offset="85%" stopColor="#78350f" /> {/* Dark Brown */}
-                                        <stop offset="100%" stopColor="#1c1917" /> {/* Stout Black */}
+                                    <linearGradient id="pod-brewery-circle" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#fef08a" />
+                                        <stop offset="30%" stopColor="#f59e0b" />
+                                        <stop offset="65%" stopColor="#b45309" />
+                                        <stop offset="85%" stopColor="#78350f" />
+                                        <stop offset="100%" stopColor="#1c1917" />
                                     </linearGradient>
                                 </defs>
                                 <path
-                                    d="M 12 60 A 60 60 0 0 1 132 60"
+                                    d="M 26 82.4 A 36 36 0 1 1 74 82.4"
                                     fill="none"
-                                    stroke="url(#pod-brewery-srm)"
+                                    stroke="url(#pod-brewery-circle)"
                                     strokeWidth="6"
                                     strokeLinecap="round"
                                 />
                             </svg>
                             <div 
-                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
+                                className="absolute w-1 h-14 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] top-10 left-1/2 -translate-x-1/2"
                                 style={{ transform: `translateX(-50%) rotate(${breweryAngle}deg)` }}
                             >
                                 <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
                             </div>
                         </div>
-                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                        <div className="w-36 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-2 px-1">
                             <span>0</span>
                             <span className="font-extrabold text-white text-base tracking-tight">{totalBreweries.toLocaleString()}</span>
                             <span>{breweryMax.toLocaleString()}</span>
                         </div>
                     </div>
 
-                    {/* Pod 3: Avg Rank Dial (Matching Star Rating Thresholds) */}
+                    {/* Pod 3: Average Rank Circular Gauge (Star Rating Gradient) */}
                     <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
                         <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-gray-400 uppercase font-bold flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse"></span>
                             Average Rank
                         </div>
-                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+                        <div className="mt-5 relative w-28 h-28 bg-gray-950 rounded-full border border-gray-700 overflow-hidden flex items-center justify-center shadow-inner">
+                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
                                 <defs>
-                                    <linearGradient id="pod-rank-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#ef4444" /> {/* Red (<2.0) */}
-                                        <stop offset="40%" stopColor="#f97316" /> {/* Orange (2.0+) */}
-                                        <stop offset="65%" stopColor="#eab308" /> {/* Yellow (3.0+) */}
-                                        <stop offset="100%" stopColor="#22c55e" /> {/* Green (4.0+) */}
+                                    <linearGradient id="pod-rank-circle" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#ef4444" />
+                                        <stop offset="40%" stopColor="#f97316" />
+                                        <stop offset="65%" stopColor="#eab308" />
+                                        <stop offset="100%" stopColor="#22c55e" />
                                     </linearGradient>
                                 </defs>
                                 <path
-                                    d="M 12 60 A 60 60 0 0 1 132 60"
+                                    d="M 26 82.4 A 36 36 0 1 1 74 82.4"
                                     fill="none"
-                                    stroke="url(#pod-rank-grad)"
+                                    stroke="url(#pod-rank-circle)"
                                     strokeWidth="6"
                                     strokeLinecap="round"
                                 />
                             </svg>
                             <div 
-                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
+                                className="absolute w-1 h-14 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] top-10 left-1/2 -translate-x-1/2"
                                 style={{ transform: `translateX(-50%) rotate(${rankAngle}deg)` }}
                             >
                                 <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
                             </div>
                         </div>
-                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                        <div className="w-36 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-2 px-1">
                             <span>0.0</span>
                             <span className="font-extrabold text-white text-base tracking-tight">{averageRank.toFixed(2)}</span>
                             <span>5.0</span>
