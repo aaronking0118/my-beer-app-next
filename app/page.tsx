@@ -102,12 +102,17 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     const numericVal = typeof value === 'number' ? value : parseFloat(String(value));
 
-    // Check Engine Light Icon SVG
-    const checkEngineIcon = (
-        <svg className="w-4 h-4 animate-pulse flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.76l.12.34V17z"/>
-            <circle cx="7.5" cy="14.5" r="1.25"/>
-            <circle cx="16.5" cy="14.5" r="1.25"/>
+    // Percent & Exclamation Icon for ABV > max
+    const percentExclamationIcon = (
+        <span className="font-mono font-black text-sm animate-pulse tracking-tighter">
+            %!
+        </span>
+    );
+
+    // Hop Cone Icon for IBU > max
+    const hopConeIcon = (
+        <svg className="w-4 h-4 animate-pulse flex-shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C9 2 7 4.5 7 7c0 1.5.6 2.8 1.5 3.8C7.5 11.8 7 13.3 7 15c0 2.5 2 4.5 5 4.5s5-2 5-4.5c0-1.7-.5-3.2-1.5-4.2.9-1 1.5-2.3 1.5-3.8 0-2.5-2-5-5-5zm0 2c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3zm0 9c1.4 0 2.6.5 3.5 1.3-.9.8-2.1 1.2-3.5 1.2s-2.6-.4-3.5-1.2c.9-.8 2.1-1.3 3.5-1.3zm0 4.5c1.1 0 2.1-.3 3-.8-.9.5-1.9.8-3 .8s-2.1-.3-3-.8c.9.5 1.9.8 3 .8z"/>
         </svg>
     );
 
@@ -115,7 +120,7 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
         return (
             <div className="flex justify-center">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/95 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
-                    {checkEngineIcon}
+                    {percentExclamationIcon}
                     <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%!</span>
                 </div>
             </div>
@@ -126,7 +131,7 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
         return (
             <div className="flex justify-center">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/95 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)]">
-                    {checkEngineIcon}
+                    {hopConeIcon}
                     <span className="font-mono font-bold text-xs">{Math.round(numericVal)}!</span>
                 </div>
             </div>
@@ -145,46 +150,50 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     return (
         <div className="flex flex-col items-center">
-            <div className="relative w-16 h-9 bg-gray-900 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 64 36">
-                    <defs>
-                        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                            {type === 'abv' ? (
-                                <>
-                                    <stop offset="0%" stopColor="#06b6d4" />
-                                    <stop offset="50%" stopColor="#3b82f6" />
-                                    <stop offset="100%" stopColor="#581c87" />
-                                </>
-                            ) : (
-                                <>
-                                    <stop offset="0%" stopColor="#d97706" />
-                                    <stop offset="50%" stopColor="#84cc16" />
-                                    <stop offset="100%" stopColor="#22c55e" />
-                                </>
-                            )}
-                        </linearGradient>
-                    </defs>
-                    <path
-                        d="M 6 30 A 26 26 0 0 1 58 30"
-                        fill="none"
-                        stroke={`url(#${gradientId})`}
-                        strokeWidth="4"
-                        strokeLinecap="round"
-                    />
-                </svg>
+            {/* Gauge Wrapper with explicit center reference */}
+            <div className="relative w-16 flex flex-col items-center">
+                <div className="relative w-16 h-9 bg-gray-900 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 64 36">
+                        <defs>
+                            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                                {type === 'abv' ? (
+                                    <>
+                                        <stop offset="0%" stopColor="#06b6d4" />
+                                        <stop offset="50%" stopColor="#3b82f6" />
+                                        <stop offset="100%" stopColor="#581c87" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <stop offset="0%" stopColor="#d97706" />
+                                        <stop offset="50%" stopColor="#84cc16" />
+                                        <stop offset="100%" stopColor="#22c55e" />
+                                    </>
+                                )}
+                            </linearGradient>
+                        </defs>
+                        <path
+                            d="M 6 30 A 26 26 0 0 1 58 30"
+                            fill="none"
+                            stroke={`url(#${gradientId})`}
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                        />
+                    </svg>
 
-                {/* White Needle with Center Cap */}
-                <div 
-                    className="absolute bottom-0 w-0.5 h-7 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]"
-                    style={{ transform: `rotate(${angle}deg)` }}
-                >
-                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900"></div>
+                    {/* White Needle with Center Pivot Cap */}
+                    <div 
+                        className="absolute bottom-0 w-0.5 h-7 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] left-1/2 -translate-x-1/2"
+                        style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
+                    >
+                        <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900"></div>
+                    </div>
                 </div>
             </div>
 
-            <div className="w-20 flex justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-0.5">
+            {/* Min, Value, Max Labels Centered precisely under needle base */}
+            <div className="w-24 flex items-center justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-1">
                 <span>0</span>
-                <span className="font-bold text-white text-center translate-x-[1px]">{formattedVal}</span>
+                <span className="font-bold text-white text-center">{formattedVal}</span>
                 <span>{max}</span>
             </div>
         </div>
