@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
         }
 
         const finalConsumptionDate = consumption_date || new Date().toISOString().split('T')[0];
-        const parsedRank = rank !== '' && rank != null ? parseFloat(String(rank)) : null;
+        const parsedRank = rank !== '' && rank != null ? Number(rank) : null;
 
         const insertResult = await sql`
             INSERT INTO beers (
