@@ -2,13 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import BeerGlass from '@/components/BeerGlass';
+
 export const dynamic = 'force-dynamic';
-export default function Page() {
-    // Goal states for dashboard gauges
-    const [beerMax, setBeerMax] = useState<number>(15000);
-    const [breweryMax, setBreweryMax] = useState<number>(2000);
-    
-    // ... rest of your code
 
 interface Beer {
     id: number;
@@ -226,7 +221,7 @@ export default function Home() {
     const [srm, setSrm] = useState('');
     const [tastingNotes, setTastingNotes] = useState('');
     
-    // Single source of truth for your goal sliders/inputs
+    // Single source of truth for goal sliders/inputs
     const [beerMax, setBeerMax] = useState(15000);
     const [breweryMax, setBreweryMax] = useState(2000);
     const [isEditingGoals, setIsEditingGoals] = useState(false);
@@ -252,12 +247,6 @@ export default function Home() {
     useEffect(() => {
         fetchBeers();
     }, [page, searchQuery, selectedStyle, sortOrder]);
-
-    // Calculate dynamic stats for currently loaded / filtered beers
-    const filteredBreweriesCount = useMemo(() => {
-        const set = new Set(beers.map(b => b.brewery_name.trim().toLowerCase()));
-        return set.size;
-    }, [beers]);
 
     const averageRank = useMemo(() => {
         const rankedBeers = beers.filter(b => b.rank != null && !isNaN(Number(b.rank)));
@@ -320,48 +309,48 @@ export default function Home() {
                 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-6">
-    <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <span className="w-8 h-8 flex items-center justify-center">
-                <BeerGlass srm={6} />
-            </span>
-            Aaron's Great Beer Adventure
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">
-            {totalBeers.toLocaleString()} Beers and Counting
-        </p>
-    </div>
+                    <div>
+                        <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+                            <span className="w-8 h-8 flex items-center justify-center">
+                                <BeerGlass srm={6} />
+                            </span>
+                            Aaron's Great Beer Adventure
+                        </h1>
+                        <p className="text-gray-400 text-sm mt-1">
+                            {totalBeers.toLocaleString()} Beers and Counting
+                        </p>
+                    </div>
 
-    {/* Goal Editor Inputs & Add New Beer Button */}
-    <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-3 bg-gray-900/80 border border-gray-800 p-2.5 rounded-xl">
-            <span className="text-xs text-gray-400 font-mono">Goals:</span>
-            <div className="flex items-center gap-2 text-xs font-mono">
-                <label className="text-gray-500">Beers:</label>
-                <input 
-                    type="number" 
-                    value={beerMax} 
-                    onChange={(e) => setBeerMax(Number(e.target.value))}
-                    className="w-20 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-white text-right focus:outline-none focus:border-blue-500"
-                />
-                <label className="text-gray-500">Breweries:</label>
-                <input 
-                    type="number" 
-                    value={breweryMax} 
-                    onChange={(e) => setBreweryMax(Number(e.target.value))}
-                    className="w-20 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-white text-right focus:outline-none focus:border-emerald-500"
-                />
-            </div>
-        </div>
+                    {/* Goal Editor Inputs & Add New Beer Button */}
+                    <div className="flex items-center gap-4 flex-wrap">
+                        <div className="flex items-center gap-3 bg-gray-900/80 border border-gray-800 p-2.5 rounded-xl">
+                            <span className="text-xs text-gray-400 font-mono">Goals:</span>
+                            <div className="flex items-center gap-2 text-xs font-mono">
+                                <label className="text-gray-500">Beers:</label>
+                                <input 
+                                    type="number" 
+                                    value={beerMax} 
+                                    onChange={(e) => setBeerMax(Number(e.target.value))}
+                                    className="w-20 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-white text-right focus:outline-none focus:border-blue-500"
+                                />
+                                <label className="text-gray-500">Breweries:</label>
+                                <input 
+                                    type="number" 
+                                    value={breweryMax} 
+                                    onChange={(e) => setBreweryMax(Number(e.target.value))}
+                                    className="w-20 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-white text-right focus:outline-none focus:border-emerald-500"
+                                />
+                            </div>
+                        </div>
 
-        <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2"
-        >
-            + Add New Beer
-        </button>
-    </div>
-</div>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2"
+                        >
+                            + Add New Beer
+                        </button>
+                    </div>
+                </div>
 
                 {/* Car Instrument Cluster / Dashboard Gauges Header */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -399,7 +388,7 @@ export default function Home() {
                         <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
                             <span>0</span>
                             <span className="font-extrabold text-white text-base tracking-tight">{totalBeers.toLocaleString()}</span>
-                            <span>{totalBeersMax.toLocaleString()}</span>
+                            <span>{beerMax.toLocaleString()}</span>
                         </div>
                     </div>
 
@@ -593,70 +582,6 @@ export default function Home() {
                 </div>
 
             </div>
-
-            {/* Add Beer Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center border-b border-gray-800 pb-4">
-                            <h2 className="text-xl font-bold text-white">Log a New Beer</h2>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white">&times;</button>
-                        </div>
-                        <form onSubmit={handleAddBeer} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Brewery Name</label>
-                                <input type="text" required value={breweryName} onChange={(e) => setBreweryName(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="e.g. Sierra Nevada" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Beer Name</label>
-                                <input type="text" required value={beerName} onChange={(e) => setBeerName(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="e.g. Pale Ale" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Style</label>
-                                    <input type="text" value={beerStyle} onChange={(e) => setBeerStyle(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="e.g. Pale Ale" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Rank (0-5)</label>
-                                    <input type="number" step="0.5" max="5" min="0" value={rank} onChange={(e) => setRank(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="4.5" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">ABV (%)</label>
-                                    <input type="number" step="0.1" value={abv} onChange={(e) => setAbv(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="6.5" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">IBU</label>
-                                    <input type="number" value={ibu} onChange={(e) => setIbu(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="45" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">SRM (Color)</label>
-                                    <input type="number" value={srm} onChange={(e) => setSrm(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="6" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Country</label>
-                                    <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">State</label>
-                                    <input type="text" value={state} onChange={(e) => setState(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Tasting Notes</label>
-                                <textarea value={tastingNotes} onChange={(e) => setTastingNotes(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="Piney, citrus, crisp finish..."></textarea>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-gray-400 hover:text-white">Cancel</button>
-                                <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2 rounded-xl transition-all">Save Beer</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </main>
     );
 }
