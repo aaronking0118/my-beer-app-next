@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import BeerGlass from '@/components/BeerGlass';
 
 interface Beer {
     id: number;
@@ -18,6 +19,86 @@ interface Beer {
     consumption_date: string | null;
 }
 
+// Helper to get country/state flags
+function getFlagEmoji(country: string | null, state: string | null): string {
+    if (!country) return '🌍';
+    if (country.toLowerCase() === 'usa' || country.toLowerCase() === 'united states') {
+        if (state) {
+            const st = state.trim().toLowerCase();
+            if (st === 'texas' || st === 'tx') return '🤠';
+            if (st === 'colorado' || st === 'co') return '🏔️';
+            if (st === 'illinois' || st === 'il') return '🏙️';
+            if (st === 'california' || st === 'ca') return '🌴';
+            if (st === 'oregon' || st === 'or') return '🌲';
+        }
+        return '🇺🇸';
+    }
+    if (country.toLowerCase() === 'japan') return '🇯🇵';
+    if (country.toLowerCase() === 'germany') return '🇩🇪';
+    if (country.toLowerCase() === 'belgium') return '🇧🇪';
+    if (country.toLowerCase() === 'united kingdom' || country.toLowerCase() === 'uk') return '🇬🇧';
+    if (country.toLowerCase() === 'canada') return '🇨🇦';
+    if (country.toLowerCase() === 'mexico') return '🇲🇽';
+    return '🏳️';
+}
+
+// Star rating component with red-yellow-green gradient coloring
+function StarRating({ rank }: { rank: number | null }) {
+    if (rank == null) return <span className="text-gray-500 text-xs">--</span>;
+    
+    // Gradient color mapping based on 0-5 rank scale
+    let starColor = '#ef4444'; // Red for low
+    if (rank >= 4.0) starColor = '#22c55e'; // Green for high/excellent
+    else if (rank >= 3.0) starColor = '#eab308'; // Yellow/Gold for medium-good
+    else if (rank >= 2.0) starColor = '#f97316'; // Orange
+
+    return (
+        <div className="flex items-center gap-1.5">
+            <div className="flex text-sm" style={{ color: starColor }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star}>{star <= Math.round(rank) ? '★' : '☆'}</span>
+                ))}
+            </div>
+            <span className="text-xs font-semibold text-gray-300">({rank.toFixed(1)})</span>
+        </div>
+    );
+}
+
+// Speedometer Gauge Component for ABV / IBU
+function SpeedometerGauge({ value, max, label, unit }: { value: number | null; max: number; label: string; unit: string }) {
+    if (value == null) return <span className="text-gray-500 text-xs">--</span>;
+    
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+    
+    // Dynamic color based on value intensity
+    let barColor = '#3b82f6'; // Blue
+    if (label === 'ABV') {
+        if (value > 8) barColor = '#a855f7'; // Purple for high ABV
+        else if (value > 6) barColor = '#3b82f6';
+        else barColor = '#06b6d4';
+    } else {
+        // IBU intensity
+        if (value > 60) barColor = '#ef4444'; // Very bitter
+        else if (value > 30) barColor = '#eab308'; // Moderate
+        else barColor = '#22c55e'; // Mild
+    }
+
+    return (
+        <div className="flex flex-col gap-1 w-28">
+            <div className="flex justify-between text-[10px] text-gray-400 font-mono">
+                <span>{value}{unit}</span>
+                <span className="text-gray-500">max {max}{unit}</span>
+            </div>
+            <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden p-[1px] border border-gray-700">
+                <div 
+                    className="h-full rounded-full transition-all duration-500" 
+                    style={{ width: `${percentage}%`, backgroundColor: barColor }}
+                ></div>
+            </div>
+        </div>
+    );
+}
+
 export default function Home() {
     const [beers, setBeers] = useState<Beer[]>([]);
     const [totalBeers, setTotalBeers] = useState(0);
@@ -29,7 +110,6 @@ export default function Home() {
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
 
-    // Modal state for adding a new beer
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [breweryName, setBreweryName] = useState('');
     const [beerName, setBeerName] = useState('');
@@ -37,6 +117,9 @@ export default function Home() {
     const [country, setCountry] = useState('USA');
     const [state, setState] = useState('Texas');
     const [rank, setRank] = useState('');
+    const [abv, setAbv] = useState('');
+    const [ibu, setIbu] = useState('');
+    const [srm, setSrm] = useState('');
     const [tastingNotes, setTastingNotes] = useState('');
 
     const fetchBeers = async () => {
@@ -74,6 +157,9 @@ export default function Home() {
                     country,
                     state,
                     rank: rank ? parseFloat(rank) : null,
+                    abv: abv ? parseFloat(abv) : null,
+                    ibu: ibu ? parseFloat(ibu) : null,
+                    srm: srm ? parseFloat(srm) : null,
                     tasting_notes: tastingNotes,
                 }),
             });
@@ -84,8 +170,11 @@ export default function Home() {
                 setBeerName('');
                 setBeerStyle('');
                 setRank('');
+                setAbv('');
+                setIbu('');
+                setSrm('');
                 setTastingNotes('');
-                fetchBeers(); // Refresh list
+                fetchBeers();
             } else {
                 const err = await res.json();
                 alert(err.error || 'Failed to add beer');
@@ -135,7 +224,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Filter and Search Controls */}
+                {/* Filter Controls */}
                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#111827] p-4 rounded-2xl border border-gray-800">
                     <input
                         type="text"
@@ -177,34 +266,53 @@ export default function Home() {
                             <thead>
                                 <tr className="border-b border-gray-800 text-xs text-gray-400 uppercase tracking-wider bg-[#161f33]">
                                     <th className="p-4">Badge #</th>
+                                    <th className="p-4">Glass</th>
                                     <th className="p-4">Beer / Brewery</th>
                                     <th className="p-4">Style</th>
                                     <th className="p-4">Origin</th>
                                     <th className="p-4">Rank</th>
                                     <th className="p-4">ABV</th>
+                                    <th className="p-4">IBU</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800 text-sm">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={6} className="text-center py-12 text-gray-400">Loading your adventure...</td>
+                                        <td colSpan={8} className="text-center py-12 text-gray-400">Loading your adventure...</td>
                                     </tr>
                                 ) : beers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="text-center py-12 text-gray-400">No beers found.</td>
+                                        <td colSpan={8} className="text-center py-12 text-gray-400">No beers found.</td>
                                     </tr>
                                 ) : (
                                     beers.map((beer) => (
                                         <tr key={beer.id} className="hover:bg-[#1a2336] transition-colors">
                                             <td className="p-4 font-mono text-blue-400">#{beer.beer_number}</td>
                                             <td className="p-4">
+                                                <div className="w-8 flex justify-center">
+                                                    <BeerGlass srm={beer.srm} />
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
                                                 <div className="font-bold text-white">{beer.beer_name}</div>
                                                 <div className="text-xs text-gray-400">{beer.brewery_name}</div>
                                             </td>
                                             <td className="p-4 text-gray-300">{beer.beer_style || '--'}</td>
-                                            <td className="p-4 text-gray-300">{beer.country ? `${beer.country}${beer.state ? `, ${beer.state}` : ''}` : '--'}</td>
-                                            <td className="p-4 font-semibold text-yellow-400">{beer.rank ? `${beer.rank} ⭐` : '--'}</td>
-                                            <td className="p-4 text-gray-300">{beer.abv ? `${beer.abv}%` : '--'}</td>
+                                            <td className="p-4 text-gray-300">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-lg">{getFlagEmoji(beer.country, beer.state)}</span>
+                                                    <span>{beer.country ? `${beer.country}${beer.state ? `, ${beer.state}` : ''}` : '--'}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <StarRating rank={beer.rank} />
+                                            </td>
+                                            <td className="p-4">
+                                                <SpeedometerGauge value={beer.abv} max={15} label="ABV" unit="%" />
+                                            </td>
+                                            <td className="p-4">
+                                                <SpeedometerGauge value={beer.ibu} max={100} label="IBU" unit=" IBUs" />
+                                            </td>
                                         </tr>
                                     ))
                                 )}
@@ -218,7 +326,7 @@ export default function Home() {
             {/* Add Beer Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl">
+                    <div className="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center border-b border-gray-800 pb-4">
                             <h2 className="text-xl font-bold text-white">Log a New Beer</h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white">&times;</button>
@@ -240,6 +348,30 @@ export default function Home() {
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Rank (0-5)</label>
                                     <input type="number" step="0.5" max="5" min="0" value={rank} onChange={(e) => setRank(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="4.5" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">ABV (%)</label>
+                                    <input type="number" step="0.1" value={abv} onChange={(e) => setAbv(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="6.5" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">IBU</label>
+                                    <input type="number" value={ibu} onChange={(e) => setIbu(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="45" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">SRM (Color)</label>
+                                    <input type="number" value={srm} onChange={(e) => setSrm(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="6" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Country</label>
+                                    <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">State</label>
+                                    <input type="text" value={state} onChange={(e) => setState(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" />
                                 </div>
                             </div>
                             <div>
