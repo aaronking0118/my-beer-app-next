@@ -36,7 +36,7 @@ function getCountryCode(country: string | null): string {
     return '';
 }
 
-// Star rating component with precise half-star gradient fill
+// Star rating component with clean percentage-clipped icon stacking
 function StarRating({ rank }: { rank: number | null | string }) {
     if (rank == null || rank === '') return <span className="text-gray-500 text-xs">--</span>;
     
@@ -59,17 +59,20 @@ function StarRating({ rank }: { rank: number | null | string }) {
                     else if (diff > 0) fillPercentage = diff * 100;
 
                     return (
-                        <span key={star} className="relative inline-block text-gray-700">
+                        <div key={star} className="relative inline-block text-gray-700">
+                            {/* Background empty star */}
                             <span>★</span>
+                            
+                            {/* Foreground filled portion */}
                             {fillPercentage > 0 && (
-                                <span 
-                                    className="absolute top-0 left-0 overflow-hidden" 
-                                    style={{ width: `${fillPercentage}%`, color: starColor }}
+                                <div 
+                                    className="absolute top-0 left-0 overflow-hidden pointer-events-none" 
+                                    style={{ width: `${fillPercentage}%` }}
                                 >
-                                    ★
-                                </span>
+                                    <span style={{ color: starColor }}>★</span>
+                                </div>
                             )}
-                        </span>
+                        </div>
                     );
                 })}
             </div>
