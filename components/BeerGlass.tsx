@@ -1,47 +1,59 @@
 import React from 'react';
-import { srmToHex } from '@/utils/srmToHex';
 
 interface BeerGlassProps {
-  srm?: number | null;
-  beerName?: string;
+    srm: number | null;
 }
 
-export default function BeerGlass({ srm, beerName }: BeerGlassProps) {
-  const fillColor = srmToHex(srm);
+// Convert SRM color value to approximate HEX color
+function srmToHex(srm: number | null): string {
+    if (srm == null || isNaN(srm)) return '#facc15'; // default yellow
+    if (srm <= 2) return '#fef08a';
+    if (srm <= 4) return '#fde047';
+    if (srm <= 6) return '#facc15';
+    if (srm <= 9) return '#eab308';
+    if (srm <= 12) return '#ca8a04';
+    if (srm <= 15) return '#a16207';
+    if (srm <= 18) return '#854d0e';
+    if (srm <= 20) return '#713f12';
+    if (srm <= 24) return '#422006';
+    return '#1c1917';
+}
 
-  return (
-    <div className="flex items-center gap-3">
-      {/* SVG Pint Glass */}
-      <svg
-        width="28"
-        height="40"
-        viewBox="0 0 32 48"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="drop-shadow-sm flex-shrink-0"
-      >
-        {/* Glass Outline & Body Mask */}
-        <path
-          d="M6 2L3 42C2.8 44.5 4.8 46.5 7.3 46.5H24.7C27.2 46.5 29.2 44.5 29 42L26 2H6Z"
-          fill="#1e293b"
-          stroke="#64748b"
-          strokeWidth="2"
-        />
-        {/* Liquid Fill based on SRM */}
-        <path
-          d="M6.8 8L4.5 40C4.4 41.5 5.6 42.8 7.1 42.8H24.9C26.4 42.8 27.6 41.5 27.5 40L25.2 8H6.8Z"
-          fill={fillColor}
-        />
-        {/* Foam / Head */}
-        <path
-          d="M6.2 6H25.8C26.3 6 26.7 5.6 26.6 5.1C26.3 3.5 24.8 2.2 23 2.2H9C7.2 2.2 5.7 3.5 5.4 5.1C5.3 5.6 5.7 6 6.2 6Z"
-          fill="#f8fafc"
-          opacity="0.9"
-        />
-      </svg>
-      {srm != null && (
-        <span className="text-xs text-slate-400 font-mono">SRM: {srm}</span>
-      )}
-    </div>
-  );
+export default function BeerGlass({ srm }: { srm: number | null }) {
+    const liquidColor = srmToHex(srm);
+
+    return (
+        <div className="relative w-8 h-10 flex items-center justify-center">
+            <svg className="w-full h-full drop-shadow" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Beer Mug Handle */}
+                <path
+                    d="M 23 9 C 29 9, 29 23, 23 23"
+                    stroke="#94a3b8"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                />
+                
+                {/* Mug Body Container */}
+                <path
+                    d="M 6 6 L 22 6 C 23 18, 23 20, 22 30 C 21 32, 20 32, 19 32 L 9 32 C 8 32, 7 32, 6 30 C 5 20, 5 18, 6 6 Z"
+                    fill="#1e293b"
+                    stroke="#cbd5e1"
+                    strokeWidth="2"
+                />
+
+                {/* Liquid Fill */}
+                <path
+                    d="M 7 11 L 21 11 C 21.8 19, 21.8 21, 21 29 C 20.5 30.5, 20 31, 19 31 L 9 31 C 8 31, 7.5 30.5, 7 29 C 6.2 21, 6.2 19, 7 11 Z"
+                    fill={liquidColor}
+                />
+
+                {/* Foam Head */}
+                <path
+                    d="M 6.5 11 C 6.5 9.5, 8 8.5, 10 9 C 12 7.5, 15 8.5, 17 9 C 19 8, 21 9, 21.5 11 C 21.5 12.5, 19 13, 14 13 C 9 13, 6.5 12.5, 6.5 11 Z"
+                    fill="#ffffff"
+                />
+            </svg>
+        </div>
+    );
 }

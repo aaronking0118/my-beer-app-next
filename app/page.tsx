@@ -60,7 +60,6 @@ function StarRating({ rank }: { rank: number | null | string }) {
         }
     }
 
-    // Format rank: whole number with no decimal, or decimal if half
     const formattedRank = Number.isInteger(numericRank) ? numericRank.toString() : numericRank.toFixed(1);
 
     return (
@@ -105,18 +104,22 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
 
     if (type === 'abv' && numericVal > 10) {
         return (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/90 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
-                <span className="font-mono font-bold text-xs">??</span>
-                <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%!</span>
+            <div className="flex justify-center">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/95 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
+                    <span className="font-mono font-bold text-xs">??</span>
+                    <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%!</span>
+                </div>
             </div>
         );
     }
 
     if (type === 'ibu' && numericVal > 100) {
         return (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/90 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse">
-                <span className="text-xs">??</span>
-                <span className="font-mono font-bold text-xs">{Math.round(numericVal)}!</span>
+            <div className="flex justify-center">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/95 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse">
+                    <span className="text-xs">??</span>
+                    <span className="font-mono font-bold text-xs">{Math.round(numericVal)}!</span>
+                </div>
             </div>
         );
     }
@@ -161,11 +164,12 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
                     />
                 </svg>
 
+                {/* White Needle with Center Cap */}
                 <div 
-                    className="absolute bottom-0 w-0.5 h-7 bg-black origin-bottom transition-transform duration-500 z-20 drop-shadow"
+                    className="absolute bottom-0 w-0.5 h-7 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]"
                     style={{ transform: `rotate(${angle}deg)` }}
                 >
-                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-black rounded-full border border-gray-600"></div>
+                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900"></div>
                 </div>
             </div>
 
@@ -276,7 +280,7 @@ export default function Home() {
                             Aaron&apos;s Great Beer Adventure
                         </h1>
                         <p className="text-gray-400 text-sm mt-1">
-                            {totalBeers.toLocaleString()}+ Beers and Counting
+                            10,000 Beers and Counting
                         </p>
                     </div>
                     <button
@@ -349,8 +353,8 @@ export default function Home() {
                                     <th className="p-4">Style</th>
                                     <th className="p-4">Origin</th>
                                     <th className="p-4">Rank</th>
-                                    <th className="p-4">ABV</th>
-                                    <th className="p-4">IBU</th>
+                                    <th className="p-4 text-center">ABV</th>
+                                    <th className="p-4 text-center">IBU</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800 text-sm">
@@ -379,18 +383,22 @@ export default function Home() {
                                                 </td>
                                                 <td className="p-4 text-gray-300">{beer.beer_style || '--'}</td>
                                                 <td className="p-4 text-gray-300">
-                                                    <div className="flex items-center gap-2">
-                                                        {countryCode ? (
-                                                            <img 
-                                                                src={`https://flagcdn.com/24x18/${countryCode}.png`} 
-                                                                alt={beer.country || 'Flag'} 
-                                                                className="w-5 h-3.5 object-cover rounded shadow-sm border border-gray-700" 
-                                                            />
-                                                        ) : (
-                                                            <span className="w-5 h-3.5 flex items-center justify-center text-xs">??</span>
-                                                        )}
-                                                        <span className="font-medium text-white">{beer.country || '--'}</span>
-                                                    </div>
+                                                    {beer.country ? (
+                                                        <div className="flex items-center gap-2">
+                                                            {countryCode ? (
+                                                                <img 
+                                                                    src={`https://flagcdn.com/24x18/${countryCode}.png`} 
+                                                                    alt={beer.country} 
+                                                                    className="w-5 h-3.5 object-cover rounded shadow-sm border border-gray-700" 
+                                                                />
+                                                            ) : (
+                                                                <span className="w-5 h-3.5 flex items-center justify-center text-xs">??</span>
+                                                            )}
+                                                            <span className="font-medium text-white">{beer.country}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-500 text-xs">--</span>
+                                                    )}
                                                     {beer.state && <div className="text-xs text-gray-400 mt-0.5 ml-7">{beer.state}</div>}
                                                 </td>
                                                 <td className="p-4">
