@@ -102,12 +102,21 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     const numericVal = typeof value === 'number' ? value : parseFloat(String(value));
 
+    // Check Engine Light Icon SVG
+    const checkEngineIcon = (
+        <svg className="w-4 h-4 animate-pulse flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.76l.12.34V17z"/>
+            <circle cx="7.5" cy="14.5" r="1.25"/>
+            <circle cx="16.5" cy="14.5" r="1.25"/>
+        </svg>
+    );
+
     if (type === 'abv' && numericVal > 10) {
         return (
             <div className="flex justify-center">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/95 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/95 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                    {checkEngineIcon}
                     <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%!</span>
-                    <span className="text-xs">??</span>
                 </div>
             </div>
         );
@@ -116,9 +125,9 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
     if (type === 'ibu' && numericVal > 100) {
         return (
             <div className="flex justify-center">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/95 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/95 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)]">
+                    {checkEngineIcon}
                     <span className="font-mono font-bold text-xs">{Math.round(numericVal)}!</span>
-                    <span className="text-xs">??</span>
                 </div>
             </div>
         );
@@ -175,7 +184,7 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
             <div className="w-20 flex justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-0.5">
                 <span>0</span>
-                <span className="font-bold text-white">{formattedVal}</span>
+                <span className="font-bold text-white text-center translate-x-[1px]">{formattedVal}</span>
                 <span>{max}</span>
             </div>
         </div>
