@@ -349,7 +349,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Instrument Cluster Header (Tick marks properly aligned to the 270-deg arc) */}
+                {/* Instrument Cluster Header */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
                     
                     {/* Gauge 1: Beers */}
@@ -368,18 +368,18 @@ export default function Home() {
                                         <stop offset="100%" stopColor="#1c1917" />
                                     </linearGradient>
                                 </defs>
-                                {/* Corrected tick marks aligned to the 270-degree arc span */}
+                                {/* Clearly visible tick marks outside the arc */}
                                 {Array.from({ length: 9 }).map((_, i) => {
                                     const deg = -135 + i * (270 / 8);
                                     return (
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="12"
+                                            y1="8"
                                             x2="60"
-                                            y2="18"
-                                            stroke="#4b5563"
-                                            strokeWidth="2"
+                                            y2="15"
+                                            stroke="#9ca3af"
+                                            strokeWidth="2.5"
                                             strokeLinecap="round"
                                             transform={`rotate(${deg} 60 60)`}
                                         />
@@ -428,11 +428,11 @@ export default function Home() {
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="12"
+                                            y1="8"
                                             x2="60"
-                                            y2="18"
-                                            stroke="#4b5563"
-                                            strokeWidth="2"
+                                            y2="15"
+                                            stroke="#9ca3af"
+                                            strokeWidth="2.5"
                                             strokeLinecap="round"
                                             transform={`rotate(${deg} 60 60)`}
                                         />
@@ -480,11 +480,11 @@ export default function Home() {
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="12"
+                                            y1="8"
                                             x2="60"
-                                            y2="18"
-                                            stroke="#4b5563"
-                                            strokeWidth="2"
+                                            y2="15"
+                                            stroke="#9ca3af"
+                                            strokeWidth="2.5"
                                             strokeLinecap="round"
                                             transform={`rotate(${deg} 60 60)`}
                                         />
