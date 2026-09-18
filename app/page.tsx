@@ -219,6 +219,16 @@ export default function Home() {
     const [ibu, setIbu] = useState('');
     const [srm, setSrm] = useState('');
     const [tastingNotes, setTastingNotes] = useState('');
+    
+    const [beerMax, setBeerMax] = useState(15000); // Or whatever your target is
+    const [breweryMax, setBreweryMax] = useState(2000);
+    const [isEditingGoals, setIsEditingGoals] = useState(false); // To toggle inputs on/off cleanly
+
+    // For Total Beers needle angle (-90deg to 90deg scale)
+    const beerAngle = Math.min(Math.max((totalBeers / beerMax) * 180 - 90, -90), 90);
+
+    // For Breweries needle angle
+    const breweryAngle = Math.min(Math.max((totalBreweries / breweryMax) * 180 - 90, -90), 90);
 
     const fetchBeers = async () => {
         setLoading(true);
@@ -314,24 +324,48 @@ export default function Home() {
                 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-6">
-                    <div>
-                        <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                            <span className="w-8 h-8 flex items-center justify-center">
-                                <BeerGlass srm={6} />
-                            </span>
-                            Aaron&apos;s Great Beer Adventure
-                        </h1>
-                        <p className="text-gray-400 text-sm mt-1">
-                            10,000 Beers and Counting
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2"
-                    >
-                        + Add New Beer
-                    </button>
-                </div>
+    <div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+            <span className="w-8 h-8 flex items-center justify-center">
+                <BeerGlass srm={6} />
+            </span>
+            Aaron's Great Beer Adventure
+        </h1>
+        <p className="text-gray-400 text-sm mt-1">
+            {totalBeers.toLocaleString()} Beers and Counting
+        </p>
+    </div>
+
+    {/* Goal Editor Inputs & Add New Beer Button */}
+    <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 bg-gray-900/80 border border-gray-800 p-2.5 rounded-xl">
+            <span className="text-xs text-gray-400 font-mono">Goals:</span>
+            <div className="flex items-center gap-2 text-xs font-mono">
+                <label className="text-gray-500">Beers:</label>
+                <input 
+                    type="number" 
+                    value={beerMax} 
+                    onChange={(e) => setBeerMax(Number(e.target.value))}
+                    className="w-20 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-white text-right focus:outline-none focus:border-blue-500"
+                />
+                <label className="text-gray-500">Breweries:</label>
+                <input 
+                    type="number" 
+                    value={breweryMax} 
+                    onChange={(e) => setBreweryMax(Number(e.target.value))}
+                    className="w-20 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-white text-right focus:outline-none focus:border-emerald-500"
+                />
+            </div>
+        </div>
+
+        <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2"
+        >
+            + Add New Beer
+        </button>
+    </div>
+</div>
 
                 {/* Car Instrument Cluster / Dashboard Gauges Header */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
