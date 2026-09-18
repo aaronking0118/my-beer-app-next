@@ -48,7 +48,6 @@ function StarRating({ rank }: { rank: number | null | string }) {
 
     const starPath = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
 
-    // Build a strict array of 5 exact star types
     const stars = [];
     for (let i = 1; i <= 5; i++) {
         const diff = numericRank - (i - 1);
@@ -74,17 +73,16 @@ function StarRating({ rank }: { rank: number | null | string }) {
                     }
                     if (type === 'half') {
                         return (
-                            <svg 
-                                key={index} 
-                                className="w-4 h-4 flex-shrink-0" 
-                                viewBox="0 0 24 24" 
-                                fill={starColor}
-                                style={{ clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' }}
-                            >
-                                <path d={starPath} fill={starColor} />
-                                {/* Background fill for the empty half */}
-                                <path d={starPath} fill="#374151" />
-                            </svg>
+                            <div key={index} className="relative w-4 h-4 flex-shrink-0">
+                                {/* Background empty star */}
+                                <svg className="absolute inset-0 w-4 h-4" viewBox="0 0 24 24" fill="#374151">
+                                    <path d={starPath} />
+                                </svg>
+                                {/* Foreground left-half colored star using overflow clipping */}
+                                <svg className="absolute inset-0 w-4 h-4 overflow-hidden" viewBox="0 0 24 24" style={{ clipPath: 'inset(0 50% 0 0)' }} fill={starColor}>
+                                    <path d={starPath} />
+                                </svg>
+                            </div>
                         );
                     }
                     return (
