@@ -349,13 +349,12 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Instrument Cluster Header (Clean car gauges without min/max labels, perfectly centered values, and ticks along the arc) */}
+                {/* Instrument Cluster Header (Radial tick marks, removed glowing dots, true car dashboard style) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
                     
                     {/* Gauge 1: Beers */}
                     <div className="flex flex-col items-center">
-                        <div className="text-xs font-mono tracking-widest text-gray-400 uppercase font-bold mb-3 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <div className="text-xs font-mono tracking-widest text-gray-400 uppercase font-bold mb-3">
                             Beers
                         </div>
                         <div className="relative w-40 h-40 flex items-center justify-center">
@@ -369,7 +368,7 @@ export default function Home() {
                                         <stop offset="100%" stopColor="#1c1917" />
                                     </linearGradient>
                                 </defs>
-                                {/* Tick marks positioned right along the outside edge of the arc */}
+                                {/* Radial tick marks pointing outward from center */}
                                 {Array.from({ length: 9 }).map((_, i) => {
                                     const deg = -225 + i * (270 / 8);
                                     return (
@@ -409,8 +408,7 @@ export default function Home() {
 
                     {/* Gauge 2: Breweries */}
                     <div className="flex flex-col items-center">
-                        <div className="text-xs font-mono tracking-widest text-gray-400 uppercase font-bold mb-3 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <div className="text-xs font-mono tracking-widest text-gray-400 uppercase font-bold mb-3">
                             Breweries
                         </div>
                         <div className="relative w-40 h-40 flex items-center justify-center">
@@ -463,8 +461,7 @@ export default function Home() {
 
                     {/* Gauge 3: Average Rank */}
                     <div className="flex flex-col items-center">
-                        <div className="text-xs font-mono tracking-widest text-gray-400 uppercase font-bold mb-3 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <div className="text-xs font-mono tracking-widest text-gray-400 uppercase font-bold mb-3">
                             Average Rank
                         </div>
                         <div className="relative w-40 h-40 flex items-center justify-center">
