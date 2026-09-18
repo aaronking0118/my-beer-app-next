@@ -1,8 +1,45 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import StarRating from './components/StarRating';
-import SpeedometerGauge from './components/SpeedometerGauge';
+
+// Inline StarRating Component
+function StarRating({ rank }: { rank?: number }) {
+    if (rank === undefined || rank === null) return <span className="text-gray-500 text-xs">--</span>;
+    return (
+        <div className="flex items-center justify-center gap-0.5 text-amber-400 text-xs" title={`${rank} / 5`}>
+            {Array.from({ length: 5 }).map((_, i) => {
+                const filled = i + 1 <= Math.floor(rank);
+                const half = i < rank && i >= Math.floor(rank);
+                return (
+                    <span key={i} className={filled || half ? 'text-amber-400' : 'text-gray-700'}>
+                        {half ? '?' : '?'}
+                    </span>
+                );
+            })}
+            <span className="ml-1 text-gray-300 font-mono text-xs">{rank.toFixed(1)}</span>
+        </div>
+    );
+}
+
+// Inline SpeedometerGauge Component
+function SpeedometerGauge({ value, max, type }: { value?: number; max: number; type: 'abv' | 'ibu' }) {
+    if (value === undefined || value === null) return <span className="text-gray-500 text-xs">--</span>;
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+    const colorClass = type === 'abv' 
+        ? (value > 8 ? 'bg-purple-500' : value > 6 ? 'bg-blue-500' : 'bg-emerald-500')
+        : (value > 70 ? 'bg-amber-500' : value > 40 ? 'bg-blue-500' : 'bg-emerald-500');
+
+    return (
+        <div className="flex flex-col items-center justify-center gap-1">
+            <span className="font-mono text-xs text-gray-200">
+                {value}{type === 'abv' ? '%' : ''}
+            </span>
+            <div className="w-16 bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                <div className={`h-full ${colorClass} transition-all duration-500`} style={{ width: `${percentage}%` }}></div>
+            </div>
+        </div>
+    );
+}
 
 interface Beer {
     id: number;
@@ -235,10 +272,10 @@ export default function TastingLogPage() {
                                                     <StarRating rank={beer.rank} />
                                                 </td>
                                                 <td className="p-4 text-center">
-                                                    <SpeedometerGauge beerId={beer.id} max={15} type="abv" value={beer.abv} />
+                                                    <SpeedometerGauge max={15} type="abv" value={beer.abv} />
                                                 </td>
                                                 <td className="p-4 text-center">
-                                                    <SpeedometerGauge beerId={beer.id} max={120} type="ibu" value={beer.ibu} />
+                                                    <SpeedometerGauge max={120} type="ibu" value={beer.ibu} />
                                                 </td>
                                                 <td className="p-4 max-w-xs text-gray-300 text-xs italic truncate" title={beer.tasting_notes || ''}>
                                                     {beer.tasting_notes || <span className="text-gray-600 not-italic">No notes recorded</span>}
