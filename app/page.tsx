@@ -349,7 +349,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Instrument Cluster Header (Tick marks precisely matched to the 270-degree arc span) */}
+                {/* Instrument Cluster Header (Tick marks properly aligned to the 270-deg arc) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
                     
                     {/* Gauge 1: Beers */}
@@ -368,16 +368,16 @@ export default function Home() {
                                         <stop offset="100%" stopColor="#1c1917" />
                                     </linearGradient>
                                 </defs>
-                                {/* Tick marks matching the 270-degree arc span (-225deg to +45deg) */}
+                                {/* Corrected tick marks aligned to the 270-degree arc span */}
                                 {Array.from({ length: 9 }).map((_, i) => {
-                                    const deg = -225 + i * (270 / 8);
+                                    const deg = -135 + i * (270 / 8);
                                     return (
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="19"
+                                            y1="12"
                                             x2="60"
-                                            y2="24"
+                                            y2="18"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
@@ -423,14 +423,14 @@ export default function Home() {
                                     </linearGradient>
                                 </defs>
                                 {Array.from({ length: 9 }).map((_, i) => {
-                                    const deg = -225 + i * (270 / 8);
+                                    const deg = -135 + i * (270 / 8);
                                     return (
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="19"
+                                            y1="12"
                                             x2="60"
-                                            y2="24"
+                                            y2="18"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
@@ -475,14 +475,14 @@ export default function Home() {
                                     </linearGradient>
                                 </defs>
                                 {Array.from({ length: 9 }).map((_, i) => {
-                                    const deg = -225 + i * (270 / 8);
+                                    const deg = -135 + i * (270 / 8);
                                     return (
                                         <line
                                             key={i}
                                             x1="60"
-                                            y1="19"
+                                            y1="12"
                                             x2="60"
-                                            y2="24"
+                                            y2="18"
                                             stroke="#4b5563"
                                             strokeWidth="2"
                                             strokeLinecap="round"
