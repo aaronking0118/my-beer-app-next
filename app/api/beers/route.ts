@@ -1,114 +1,124 @@
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import fs from 'fs';
+import path from 'path';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
-});
+const dbPath = path.join(process.cwd(), 'data', 'beers.json');
+
+function getDb() {
+    if (!fs.existsSync(dbPath)) {
+        return { beers: [] };
+    }
+    const fileData = fs.readFileSync(dbPath, 'utf-8');
+    return JSON.parse(fileData);
+}
+
+function saveDb(data: any) {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf-8');
+}
 
 export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = 25;
-    const offset = (page - 1) * limit;
+    try {
+        const url = new URL(request.url);
+        const search = url.searchParams.get('search')?.toLowerCase() || '';
+        const style = url.searchParams.get('style') || '';
+        const sort = url.searchParams.get('sort') || 'newest';
+        const page = parseInt(url.searchParams.get('page') || '1', 10);
+        const limit = 25;
 
-    const search = searchParams.get('search') || '';
-    const style = searchParams.get('style') || '';
-    const sort = searchParams.get('sort') || 'newest';
+        const db = getDb();
+        let beers = db.beers || [];
 
-    let queryConditions = [];
-    let queryValues: any[] = [];
-    let paramIndex = 1;
+        // Apply filters
+        const filtered = beers.filter((beer: any) => {
+            const matchesSearch = 
+                (beer.beer_name && beer.beer_name.toLowerCase().includes(search)) ||
+                (beer.brewery_name && beer.brewery_name.toLowerCase().includes(search));
+            
+            const matchesStyle = style === '' || beer.beer_style === style;
 
-    if (search) {
-      queryConditions.push(`(beer_name ILIKE $${paramIndex} OR brewery_name ILIKE $${paramIndex})`);
-      queryValues.push(`%${search}%`);
-      paramIndex++;
+            return matchesSearch && matchesStyle;
+        });
+
+        // Compute global stats for the filtered dataset before pagination
+        const uniqueBreweries = new Set(filtered.map((b: any) => b.brewery_name?.trim().toLowerCase()).filter(Boolean));
+        
+        const rankedBeers = filtered.filter((b: any) => b.rank != null && !isNaN(Number(b.rank)));
+        const totalRankSum = rankedBeers.reduce((acc: number, b: any) => acc + Number(b.rank), 0);
+        const averageRank = rankedBeers.length > 0 ? totalRankSum / rankedBeers.length : 0;
+
+        // Apply sorting
+        filtered.sort((a: any, b: any) => {
+            if (sort === 'oldest') {
+                return (a.beer_number || a.id) - (b.beer_number || b.id);
+            } else if (sort === 'rank_desc') {
+                return (b.rank || 0) - (a.rank || 0);
+            } else if (sort === 'abv_desc') {
+                return (b.abv || 0) - (a.abv || 0);
+            } else {
+                // newest
+                return (b.beer_number || b.id) - (a.beer_number || a.id);
+            }
+        });
+
+        const total = filtered.length;
+        const totalBreweries = uniqueBreweries.size;
+        const totalPages = Math.ceil(total / limit) || 1;
+
+        const paginatedBeers = filtered.slice((page - 1) * limit, page * limit);
+
+        // Extract unique styles for dropdown
+        const allStyles = Array.from(new Set(beers.map((b: any) => b.beer_style).filter(Boolean))) as string[];
+        allStyles.sort();
+
+        return NextResponse.json({
+            beers: paginatedBeers,
+            total,
+            totalBreweries,
+            averageRank,
+            totalPages,
+            page,
+            styles: allStyles
+        });
+    } catch (error) {
+        console.error('API Error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
-
-    if (style) {
-      queryConditions.push(`beer_style = $${paramIndex}`);
-      queryValues.push(style);
-      paramIndex++;
-    }
-
-    const whereClause = queryConditions.length > 0 ? `WHERE ${queryConditions.join(' AND ')}` : '';
-
-    let orderBy = 'id DESC';
-    if (sort === 'oldest') orderBy = 'id ASC';
-    if (sort === 'rank_desc') orderBy = 'rank DESC NULLS LAST';
-    if (sort === 'abv_desc') orderBy = 'abv DESC NULLS LAST';
-
-    // Fetch beers
-    const beersQuery = `
-      SELECT id, beer_number, beer_name, brewery_name, beer_style, rank, abv, ibu, srm, country, state, tasting_notes, consumption_date
-      FROM beers
-      ${whereClause}
-      ORDER BY ${orderBy}
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-    const beersResult = await pool.query(beersQuery, queryValues);
-
-    // Fetch total count and stats
-    const countQuery = `SELECT COUNT(*) FROM beers ${whereClause}`;
-    const countResult = await pool.query(countQuery, queryValues);
-    const total = parseInt(countResult.rows[0].count, 10);
-
-    const breweriesResult = await pool.query(`SELECT COUNT(DISTINCT brewery_name) FROM beers`);
-    const totalBreweries = parseInt(breweriesResult.rows[0].count, 10);
-
-    const stylesResult = await pool.query(`SELECT DISTINCT beer_style FROM beers WHERE beer_style IS NOT NULL AND beer_style != '' ORDER BY beer_style ASC`);
-    const styles = stylesResult.rows.map(row => row.beer_style);
-
-    return NextResponse.json({
-      beers: beersResult.rows,
-      total,
-      totalBreweries,
-      styles,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-    });
-  } catch (error: any) {
-    console.error('Database error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
-  }
 }
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { brewery_name, beer_name, beer_style, country, state, rank, abv, ibu, srm, tasting_notes } = body;
+    try {
+        const body = await request.json();
+        const db = getDb();
+        
+        if (!db.beers) {
+            db.beers = [];
+        }
 
-    // Get latest beer number increment
-    const maxNumResult = await pool.query('SELECT MAX(beer_number) as max_num FROM beers');
-    const nextBeerNumber = (maxNumResult.rows[0]?.max_num || 0) + 1;
+        const maxId = db.beers.length > 0 ? Math.max(...db.beers.map((b: any) => b.id || 0)) : 0;
+        const maxNumber = db.beers.length > 0 ? Math.max(...db.beers.map((b: any) => b.beer_number || 0)) : 0;
 
-    const insertQuery = `
-      INSERT INTO beers (beer_number, brewery_name, beer_name, beer_style, country, state, rank, abv, ibu, srm, tasting_notes, consumption_date)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
-      RETURNING *;
-    `;
+        const newBeer = {
+            id: maxId + 1,
+            beer_number: maxNumber + 1,
+            beer_name: body.beer_name || 'Unnamed Beer',
+            brewery_name: body.brewery_name || 'Unknown Brewery',
+            beer_style: body.beer_style || '',
+            rank: body.rank !== undefined ? body.rank : null,
+            abv: body.abv !== undefined ? body.abv : null,
+            ibu: body.ibu !== undefined ? body.ibu : null,
+            srm: body.srm !== undefined ? body.srm : null,
+            country: body.country || 'USA',
+            state: body.state || '',
+            tasting_notes: body.tasting_notes || '',
+            consumption_date: new Date().toISOString().split('T')[0]
+        };
 
-    const values = [
-      nextBeerNumber,
-      brewery_name,
-      beer_name,
-      beer_style || null,
-      country || 'USA',
-      state || 'Texas',
-      rank ?? null,
-      abv ?? null,
-      ibu ?? null,
-      srm ?? null,
-      tasting_notes || null,
-    ];
+        db.beers.unshift(newBeer);
+        saveDb(db);
 
-    const result = await pool.query(insertQuery, values);
-
-    return NextResponse.json({ success: true, beer: result.rows[0] }, { status: 201 });
-  } catch (error: any) {
-    console.error('Insert error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to insert beer' }, { status: 500 });
-  }
+        return NextResponse.json({ success: true, beer: newBeer });
+    } catch (error) {
+        console.error('API Error:', error);
+        return NextResponse.json({ error: 'Failed to add beer' }, { status: 500 });
+    }
 }

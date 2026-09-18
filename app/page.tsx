@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import BeerGlass from '@/components/BeerGlass';
 
 interface Beer {
@@ -199,6 +199,7 @@ export default function Home() {
     const [beers, setBeers] = useState<Beer[]>([]);
     const [totalBeers, setTotalBeers] = useState(0);
     const [totalBreweries, setTotalBreweries] = useState(0);
+    const [averageRank, setAverageRank] = useState(0);
     const [styles, setStyles] = useState<string[]>([]);
     
     const [searchQuery, setSearchQuery] = useState('');
@@ -228,6 +229,7 @@ export default function Home() {
                 setBeers(data.beers);
                 setTotalBeers(data.total);
                 setTotalBreweries(data.totalBreweries);
+                setAverageRank(data.averageRank || 0);
                 setStyles(data.styles);
             }
         } catch (error) {
@@ -241,31 +243,20 @@ export default function Home() {
         fetchBeers();
     }, [page, searchQuery, selectedStyle, sortOrder]);
 
-    // Calculate dynamic stats for currently loaded / filtered beers
-    const filteredBreweriesCount = useMemo(() => {
-        const set = new Set(beers.map(b => b.brewery_name.trim().toLowerCase()));
-        return set.size;
-    }, [beers]);
+    // Circular speedometer calculation (0 to 360 degrees, usable sweep 240 deg from -120deg to +120deg)
+    const getCircularAngle = (val: number, min: number, max: number) => {
+        const clamped = Math.min(Math.max(val, min), max);
+        const percentage = (clamped - min) / (max - min || 1);
+        return -135 + percentage * 270;
+    };
 
-    const averageRank = useMemo(() => {
-        const rankedBeers = beers.filter(b => b.rank != null && !isNaN(Number(b.rank)));
-        if (rankedBeers.length === 0) return 0;
-        const sum = rankedBeers.reduce((acc, b) => acc + Number(b.rank), 0);
-        return sum / rankedBeers.length;
-    }, [beers]);
-
-    // Gauge Angles & Percentages for Dashboard Cluster
-    const totalBeersMax = 10000;
-    const beerPercentage = Math.min(totalBeers / totalBeersMax, 1);
-    const beerAngle = -90 + beerPercentage * 180;
+    const totalBeersMax = 12000;
+    const beerAngle = getCircularAngle(totalBeers, 0, totalBeersMax);
 
     const breweryMax = 2000;
-    const breweryPercentage = Math.min(filteredBreweriesCount / breweryMax, 1);
-    const breweryAngle = -90 + breweryPercentage * 180;
+    const breweryAngle = getCircularAngle(totalBreweries, 0, breweryMax);
 
-    const rankMax = 5;
-    const rankPercentage = Math.min(averageRank / rankMax, 1);
-    const rankAngle = -90 + rankPercentage * 180;
+    const rankAngle = getCircularAngle(averageRank, 0, 5);
 
     const handleAddBeer = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -332,117 +323,144 @@ export default function Home() {
                     </button>
                 </div>
 
-                {/* Car Instrument Cluster / Dashboard Gauges Header */}
+                {/* Modern Circular Vehicle Dashboard Pods */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     
-                    {/* Pod 1: Total Beers Speedometer */}
-                    <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-cyan-400 uppercase font-bold flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    {/* Pod 1: Total Beers Circular Speedometer */}
+                    <div className="bg-gradient-to-b from-[#161f33] to-[#0d1322] border border-gray-700/80 p-6 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_24px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col items-center">
+                        <div className="absolute top-4 left-5 text-[11px] font-mono tracking-widest text-cyan-400 uppercase font-bold flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
                             Total Beers
                         </div>
-                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+
+                        {/* Circular Dial Face */}
+                        <div className="mt-8 relative w-40 h-40 rounded-full bg-gray-950 border-4 border-gray-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.15)] flex items-center justify-center">
+                            {/* Outer Track SVG */}
+                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="#1f2937" strokeWidth="4" strokeDasharray="2 4" />
+                                <circle 
+                                    cx="50" cy="50" r="42" fill="none" stroke="url(#cyan-dial-grad)" strokeWidth="5" 
+                                    strokeDasharray="264" strokeDashoffset={264 - (264 * Math.min(totalBeers, totalBeersMax)) / totalBeersMax} 
+                                    strokeLinecap="round" className="transition-all duration-700"
+                                    transform="rotate(-135 50 50)"
+                                />
                                 <defs>
-                                    <linearGradient id="pod-cyan-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <linearGradient id="cyan-dial-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                                         <stop offset="0%" stopColor="#06b6d4" />
-                                        <stop offset="50%" stopColor="#3b82f6" />
-                                        <stop offset="100%" stopColor="#6366f1" />
+                                        <stop offset="100%" stopColor="#3b82f6" />
                                     </linearGradient>
                                 </defs>
-                                <path
-                                    d="M 12 60 A 60 60 0 0 1 132 60"
-                                    fill="none"
-                                    stroke="url(#pod-cyan-grad)"
-                                    strokeWidth="6"
-                                    strokeLinecap="round"
-                                />
                             </svg>
+
+                            {/* Needle */}
                             <div 
-                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
-                                style={{ transform: `translateX(-50%) rotate(${beerAngle}deg)` }}
+                                className="absolute inset-0 flex items-center justify-center transition-transform duration-700 z-20 pointer-events-none"
+                                style={{ transform: `rotate(${beerAngle}deg)` }}
                             >
-                                <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
+                                <div className="w-0.5 h-16 bg-gradient-to-t from-transparent via-cyan-400 to-white origin-bottom relative -top-8 shadow-[0_0_6px_rgba(6,182,212,0.9)]">
+                                    <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-cyan-400 rounded-full shadow-[0_0_6px_rgba(6,182,212,1)]"></div>
+                                </div>
+                            </div>
+
+                            {/* Center Hub & Digital Readout */}
+                            <div className="z-35 flex flex-col items-center justify-center bg-gray-950/90 w-24 h-24 rounded-full border border-gray-800 shadow-inner">
+                                <span className="font-extrabold text-white text-xl tracking-tighter font-mono">{totalBeers.toLocaleString()}</span>
+                                <span className="text-[9px] text-gray-400 font-mono tracking-widest mt-0.5">BEERS</span>
                             </div>
                         </div>
-                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                        <div className="w-full flex justify-between text-[10px] text-gray-400 font-mono mt-4 px-4">
                             <span>0</span>
-                            <span className="font-extrabold text-white text-base tracking-tight">{totalBeers.toLocaleString()}</span>
-                            <span>{totalBeersMax.toLocaleString()}</span>
+                            <span className="text-gray-500">MAX {totalBeersMax.toLocaleString()}</span>
                         </div>
                     </div>
 
-                    {/* Pod 2: Breweries Tachometer */}
-                    <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-bold flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    {/* Pod 2: Breweries Circular Tachometer */}
+                    <div className="bg-gradient-to-b from-[#161f33] to-[#0d1322] border border-gray-700/80 p-6 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_24px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col items-center">
+                        <div className="absolute top-4 left-5 text-[11px] font-mono tracking-widest text-emerald-400 uppercase font-bold flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
                             Breweries
                         </div>
-                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+
+                        {/* Circular Dial Face */}
+                        <div className="mt-8 relative w-40 h-40 rounded-full bg-gray-950 border-4 border-gray-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.8),0_0_15px_rgba(52,211,153,0.15)] flex items-center justify-center">
+                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="#1f2937" strokeWidth="4" strokeDasharray="2 4" />
+                                <circle 
+                                    cx="50" cy="50" r="42" fill="none" stroke="url(#emerald-dial-grad)" strokeWidth="5" 
+                                    strokeDasharray="264" strokeDashoffset={264 - (264 * Math.min(totalBreweries, breweryMax)) / breweryMax} 
+                                    strokeLinecap="round" className="transition-all duration-700"
+                                    transform="rotate(-135 50 50)"
+                                />
                                 <defs>
-                                    <linearGradient id="pod-emerald-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#d97706" />
-                                        <stop offset="50%" stopColor="#84cc16" />
-                                        <stop offset="100%" stopColor="#22c55e" />
+                                    <linearGradient id="emerald-dial-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#10b981" />
+                                        <stop offset="100%" stopColor="#84cc16" />
                                     </linearGradient>
                                 </defs>
-                                <path
-                                    d="M 12 60 A 60 60 0 0 1 132 60"
-                                    fill="none"
-                                    stroke="url(#pod-emerald-grad)"
-                                    strokeWidth="6"
-                                    strokeLinecap="round"
-                                />
                             </svg>
+
                             <div 
-                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
-                                style={{ transform: `translateX(-50%) rotate(${breweryAngle}deg)` }}
+                                className="absolute inset-0 flex items-center justify-center transition-transform duration-700 z-20 pointer-events-none"
+                                style={{ transform: `rotate(${breweryAngle}deg)` }}
                             >
-                                <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
+                                <div className="w-0.5 h-16 bg-gradient-to-t from-transparent via-emerald-400 to-white origin-bottom relative -top-8 shadow-[0_0_6px_rgba(52,211,153,0.9)]">
+                                    <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-emerald-400 rounded-full shadow-[0_0_6px_rgba(52,211,153,1)]"></div>
+                                </div>
+                            </div>
+
+                            <div className="z-35 flex flex-col items-center justify-center bg-gray-950/90 w-24 h-24 rounded-full border border-gray-800 shadow-inner">
+                                <span className="font-extrabold text-white text-xl tracking-tighter font-mono">{totalBreweries.toLocaleString()}</span>
+                                <span className="text-[9px] text-gray-400 font-mono tracking-widest mt-0.5">ACTIVE</span>
                             </div>
                         </div>
-                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                        <div className="w-full flex justify-between text-[10px] text-gray-400 font-mono mt-4 px-4">
                             <span>0</span>
-                            <span className="font-extrabold text-white text-base tracking-tight">{filteredBreweriesCount.toLocaleString()}</span>
-                            <span>{breweryMax.toLocaleString()}</span>
+                            <span className="text-gray-500">MAX {breweryMax.toLocaleString()}</span>
                         </div>
                     </div>
 
-                    {/* Pod 3: Avg Rank Dial */}
-                    <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-amber-400 uppercase font-bold flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    {/* Pod 3: Average Rank Circular Dial */}
+                    <div className="bg-gradient-to-b from-[#161f33] to-[#0d1322] border border-gray-700/80 p-6 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_24px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col items-center">
+                        <div className="absolute top-4 left-5 text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span>
                             Average Rank
                         </div>
-                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+
+                        {/* Circular Dial Face */}
+                        <div className="mt-8 relative w-40 h-40 rounded-full bg-gray-950 border-4 border-gray-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.8),0_0_15px_rgba(251,191,36,0.15)] flex items-center justify-center">
+                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="#1f2937" strokeWidth="4" strokeDasharray="2 4" />
+                                <circle 
+                                    cx="50" cy="50" r="42" fill="none" stroke="url(#amber-dial-grad)" strokeWidth="5" 
+                                    strokeDasharray="264" strokeDashoffset={264 - (264 * Math.min(averageRank, 5)) / 5} 
+                                    strokeLinecap="round" className="transition-all duration-700"
+                                    transform="rotate(-135 50 50)"
+                                />
                                 <defs>
-                                    <linearGradient id="pod-amber-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#ef4444" />
-                                        <stop offset="50%" stopColor="#f59e0b" />
-                                        <stop offset="100%" stopColor="#eab308" />
+                                    <linearGradient id="amber-dial-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#f97316" />
+                                        <stop offset="100%" stopColor="#fbbf24" />
                                     </linearGradient>
                                 </defs>
-                                <path
-                                    d="M 12 60 A 60 60 0 0 1 132 60"
-                                    fill="none"
-                                    stroke="url(#pod-amber-grad)"
-                                    strokeWidth="6"
-                                    strokeLinecap="round"
-                                />
                             </svg>
+
                             <div 
-                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
-                                style={{ transform: `translateX(-50%) rotate(${rankAngle}deg)` }}
+                                className="absolute inset-0 flex items-center justify-center transition-transform duration-700 z-20 pointer-events-none"
+                                style={{ transform: `rotate(${rankAngle}deg)` }}
                             >
-                                <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
+                                <div className="w-0.5 h-16 bg-gradient-to-t from-transparent via-amber-400 to-white origin-bottom relative -top-8 shadow-[0_0_6px_rgba(251,191,36,0.9)]">
+                                    <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-amber-400 rounded-full shadow-[0_0_6px_rgba(251,191,36,1)]"></div>
+                                </div>
+                            </div>
+
+                            <div className="z-35 flex flex-col items-center justify-center bg-gray-950/90 w-24 h-24 rounded-full border border-gray-800 shadow-inner">
+                                <span className="font-extrabold text-white text-xl tracking-tighter font-mono">{averageRank.toFixed(2)} ?</span>
+                                <span className="text-[9px] text-gray-400 font-mono tracking-widest mt-0.5">SCORE</span>
                             </div>
                         </div>
-                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                        <div className="w-full flex justify-between text-[10px] text-gray-400 font-mono mt-4 px-4">
                             <span>0.0</span>
-                            <span className="font-extrabold text-white text-base tracking-tight">{averageRank.toFixed(2)} ?</span>
-                            <span>5.0</span>
+                            <span className="text-gray-500">MAX 5.0</span>
                         </div>
                     </div>
 
@@ -454,14 +472,14 @@ export default function Home() {
                         type="text"
                         placeholder="Search by name, brewery..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                         className="w-full md:w-96 bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                     />
 
                     <div className="flex gap-4 w-full md:w-auto">
                         <select
                             value={selectedStyle}
-                            onChange={(e) => setSelectedStyle(e.target.value)}
+                            onChange={(e) => { setSelectedStyle(e.target.value); setPage(1); }}
                             className="bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
                         >
                             <option value="">All Styles</option>
@@ -472,7 +490,7 @@ export default function Home() {
 
                         <select
                             value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value)}
+                            onChange={(e) => { setSortOrder(e.target.value); setPage(1); }}
                             className="bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
                         >
                             <option value="newest">Date Added (Newest)</option>
@@ -615,7 +633,7 @@ export default function Home() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Tasting Notes</label>
+                                <label className="block text-xs font-semibold text-gray-400 uppercase nad-1">Tasting Notes</label>
                                 <textarea value={tastingNotes} onChange={(e) => setTastingNotes(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="Piney, citrus, crisp finish..."></textarea>
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
