@@ -1,262 +1,70 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import BeerGlass from '@/components/BeerGlass';
+import React, { useState, useEffect } from 'react';
+import StarRating from '@/components/StarRating';
+import SpeedometerGauge from '@/components/SpeedometerGauge';
 
 interface Beer {
     id: number;
-    beer_number: number;
+    beer_number?: number;
     beer_name: string;
     brewery_name: string;
-    beer_style: string;
-    rank: number | null;
-    abv: number | null;
-    ibu: number | null;
-    srm: number | null;
-    country: string | null;
-    state: string | null;
-    tasting_notes: string | null;
-    consumption_date: string | null;
+    beer_style?: string;
+    country?: string;
+    state?: string;
+    rank?: number;
+    abv?: number;
+    ibu?: number;
+    srm?: number;
+    tasting_notes?: string;
+    consumption_date?: string;
 }
 
-function getCountryCode(country: string | null): string {
-    if (!country) return '';
-    const c = country.trim().toLowerCase();
-    if (c === 'usa' || c === 'united states' || c === 'us') return 'us';
-    if (c === 'japan' || c === 'jp') return 'jp';
-    if (c === 'germany' || c === 'de') return 'de';
-    if (c === 'belgium' || c === 'be') return 'be';
-    if (c === 'united kingdom' || c === 'uk' || c === 'gb') return 'gb';
-    if (c === 'canada' || c === 'ca') return 'ca';
-    if (c === 'mexico' || c === 'mx') return 'mx';
-    if (c === 'australia' || c === 'au') return 'au';
-    if (c === 'france' || c === 'fr') return 'fr';
-    if (c === 'netherlands' || c === 'nl') return 'nl';
-    return '';
-}
-
-function StarRating({ rank }: { rank: number | null | string }) {
-    if (rank == null || rank === '') return <span className="text-gray-500 text-xs">--</span>;
-    
-    const numericRank = typeof rank === 'number' ? rank : parseFloat(rank);
-    if (isNaN(numericRank)) return <span className="text-gray-500 text-xs">--</span>;
-    
-    let starColor = '#ef4444';
-    if (numericRank >= 4.0) starColor = '#22c55e';
-    else if (numericRank >= 3.0) starColor = '#eab308';
-    else if (numericRank >= 2.0) starColor = '#f97316';
-
-    const starPath = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
-
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-        const diff = numericRank - (i - 1);
-        if (diff >= 0.75) {
-            stars.push('full');
-        } else if (diff >= 0.25) {
-            stars.push('half');
-        } else {
-            stars.push('empty');
-        }
-    }
-
-    const formattedRank = Number.isInteger(numericRank) ? numericRank.toString() : numericRank.toFixed(1);
-
-    return (
-        <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-0.5">
-                {stars.map((type, index) => {
-                    if (type === 'full') {
-                        return (
-                            <svg key={index} className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill={starColor}>
-                                <path d={starPath} />
-                            </svg>
-                        );
-                    }
-                    if (type === 'half') {
-                        return (
-                            <div key={index} className="relative w-4 h-4 flex-shrink-0">
-                                <svg className="absolute inset-0 w-4 h-4" viewBox="0 0 24 24" fill="#374151">
-                                    <path d={starPath} />
-                                </svg>
-                                <svg className="absolute inset-0 w-4 h-4 overflow-hidden" viewBox="0 0 24 24" style={{ clipPath: 'inset(0 50% 0 0)' }} fill={starColor}>
-                                    <path d={starPath} />
-                                </svg>
-                            </div>
-                        );
-                    }
-                    return (
-                        <svg key={index} className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#374151">
-                            <path d={starPath} />
-                        </svg>
-                    );
-                })}
-            </div>
-            <span className="text-xs font-semibold text-gray-300">{formattedRank}</span>
-        </div>
-    );
-}
-
-function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; max: number; type: 'abv' | 'ibu'; beerId: number }) {
-    if (value == null || isNaN(value)) return <span className="text-gray-500 text-xs">--</span>;
-
-    const numericVal = typeof value === 'number' ? value : parseFloat(String(value));
-
-    const percentExclamationIcon = (
-        <span className="font-mono font-black text-sm animate-pulse tracking-tighter">
-            %!
-        </span>
-    );
-
-    const detailedHopIcon = (
-        <svg className="w-4 h-4 animate-pulse flex-shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C10.5 2 9 3.2 9 5c0 .8.3 1.5.8 2.1C8.3 8 7 9.8 7 12c0 1.8.8 3.4 2 4.4-.5.8-.8 1.7-.8 2.6 0 2.2 1.8 4 4 4s4-1.8 4-4c0-.9-.3-1.8-.8-2.6 1.2-1 2-2.6 2-4.4 0-2.2-1.3-4-2.8-4.9.5-.6.8-1.3.8-2.1 0-1.8-1.5-3-3-3zm0 2c.6 0 1 .6 1 1.5 0 .5-.2 1-.6 1.4l-.4.4-.4-.4c-.4-.4-.6-.9-.6-1.4 0-.9.4-1.5 1-1.5zm0 6c1.1 0 2 .5 2.6 1.2-.6.7-1.5 1.2-2.6 1.2s-2-.5-2.6-1.2c.6-.7 1.5-1.2 2.6-1.2zm0 5c1.4 0 2.7.5 3.6 1.3-.9.8-2.2 1.3-3.6 1.3s-2.7-.5-3.6-1.3c.9-.8 2.2-1.3 3.6-1.3zm0 4.5c.9 0 1.8-.3 2.5-.8-.7.5-1.6.8-2.5.8s-1.8-.3-2.5-.8c.7.5 1.6.8 2.5.8z"/>
-        </svg>
-    );
-
-    if (type === 'abv' && numericVal > 10) {
-        return (
-            <div className="flex justify-center">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/95 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
-                    {percentExclamationIcon}
-                    <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%</span>
-                </div>
-            </div>
-        );
-    }
-
-    if (type === 'ibu' && numericVal > 100) {
-        return (
-            <div className="flex justify-center">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/95 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)]">
-                    {detailedHopIcon}
-                    <span className="font-mono font-bold text-xs">{Math.round(numericVal)}</span>
-                </div>
-            </div>
-        );
-    }
-
-    const clampedVal = Math.min(Math.max(numericVal, 0), max);
-    const percentage = clampedVal / max;
-    const angle = -90 + percentage * 180;
-
-    const formattedVal = type === 'abv' 
-        ? (Number.isInteger(numericVal) ? `${numericVal}%` : `${numericVal.toFixed(1)}%`)
-        : `${Math.round(numericVal)}`;
-
-    const gradientId = `gauge-gradient-${beerId}-${type}`;
-
-    return (
-        <div className="flex flex-col items-center">
-            <div className="relative w-16 flex flex-col items-center">
-                <div className="relative w-16 h-9 bg-gray-900 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
-                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 64 36">
-                        <defs>
-                            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                                {type === 'abv' ? (
-                                    <>
-                                        <stop offset="0%" stopColor="#06b6d4" />
-                                        <stop offset="50%" stopColor="#3b82f6" />
-                                        <stop offset="100%" stopColor="#581c87" />
-                                    </>
-                                ) : (
-                                    <>
-                                        <stop offset="0%" stopColor="#d97706" />
-                                        <stop offset="50%" stopColor="#84cc16" />
-                                        <stop offset="100%" stopColor="#22c55e" />
-                                    </>
-                                )}
-                            </linearGradient>
-                        </defs>
-                        <path
-                            d="M 6 30 A 26 26 0 0 1 58 30"
-                            fill="none"
-                            stroke={`url(#${gradientId})`}
-                            strokeWidth="4"
-                            strokeLinecap="round"
-                        />
-                    </svg>
-
-                    <div 
-                        className="absolute bottom-0 w-0.5 h-7 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] left-1/2 -translate-x-1/2"
-                        style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
-                    >
-                        <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="w-24 flex items-center justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-1 relative">
-                <span>0</span>
-                <span className="absolute left-1/2 -translate-x-1/2 font-bold text-white text-center">{formattedVal}</span>
-                <span className="ml-auto">{max}</span>
-            </div>
-        </div>
-    );
-}
-
-export default function Home() {
+export default function TastingLogPage() {
     const [beers, setBeers] = useState<Beer[]>([]);
-    const [totalBeers, setTotalBeers] = useState(0);
-    const [totalBreweries, setTotalBreweries] = useState(0);
-    const [averageRank, setAverageRank] = useState(0);
-    const [styles, setStyles] = useState<string[]>([]);
-    
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStyle, setSelectedStyle] = useState('');
     const [sortOrder, setSortOrder] = useState('newest');
     const [page, setPage] = useState(1);
-    const [loading, setLoading] = useState(true);
-
+    
+    // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [breweryName, setBreweryName] = useState('');
     const [beerName, setBeerName] = useState('');
     const [beerStyle, setBeerStyle] = useState('');
-    const [country, setCountry] = useState('USA');
-    const [state, setState] = useState('Texas');
+    const [country, setCountry] = useState('United States');
+    const [state, setState] = useState('');
     const [rank, setRank] = useState('');
     const [abv, setAbv] = useState('');
     const [ibu, setIbu] = useState('');
     const [srm, setSrm] = useState('');
     const [tastingNotes, setTastingNotes] = useState('');
 
+    useEffect(() => {
+        fetchBeers();
+    }, [searchQuery, selectedStyle, sortOrder, page]);
+
     const fetchBeers = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/beers?page=${page}&search=${searchQuery}&style=${selectedStyle}&sort=${sortOrder}`);
-            const data = await res.json();
+            const queryParams = new URLSearchParams({
+                search: searchQuery,
+                style: selectedStyle,
+                sort: sortOrder,
+                page: page.toString()
+            });
+            const res = await fetch(`/api/beers?${queryParams.toString()}`);
             if (res.ok) {
-                setBeers(data.beers);
-                setTotalBeers(data.total);
-                setTotalBreweries(data.totalBreweries);
-                setAverageRank(data.averageRank || 0);
-                setStyles(data.styles);
+                const data = await res.json();
+                setBeers(data.beers || data);
             }
         } catch (error) {
-            console.error('Failed to fetch beers:', error);
+            console.error('Failed to load beers:', error);
         } finally {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchBeers();
-    }, [page, searchQuery, selectedStyle, sortOrder]);
-
-    // Circular speedometer calculation (0 to 360 degrees, usable sweep 240 deg from -120deg to +120deg)
-    const getCircularAngle = (val: number, min: number, max: number) => {
-        const clamped = Math.min(Math.max(val, min), max);
-        const percentage = (clamped - min) / (max - min || 1);
-        return -135 + percentage * 270;
-    };
-
-    const totalBeersMax = 12000;
-    const beerAngle = getCircularAngle(totalBeers, 0, totalBeersMax);
-
-    const breweryMax = 2000;
-    const breweryAngle = getCircularAngle(totalBreweries, 0, breweryMax);
-
-    const rankAngle = getCircularAngle(averageRank, 0, 5);
 
     const handleAddBeer = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -272,373 +80,328 @@ export default function Home() {
                     state,
                     rank: rank ? parseFloat(rank) : null,
                     abv: abv ? parseFloat(abv) : null,
-                    ibu: ibu ? parseFloat(ibu) : null,
-                    srm: srm ? parseFloat(srm) : null,
+                    ibu: ibu ? parseInt(ibu, 10) : null,
+                    srm: srm ? parseInt(srm, 10) : null,
                     tasting_notes: tastingNotes,
-                }),
+                    consumption_date: new Date().toISOString().split('T')[0]
+                })
             });
 
             if (res.ok) {
                 setIsModalOpen(false);
+                // Reset form
                 setBreweryName('');
                 setBeerName('');
                 setBeerStyle('');
+                setState('');
                 setRank('');
                 setAbv('');
                 setIbu('');
                 setSrm('');
                 setTastingNotes('');
                 fetchBeers();
-            } else {
-                const err = await res.json();
-                alert(err.error || 'Failed to add beer');
             }
         } catch (error) {
-            console.error('Error adding beer:', error);
+            console.error('Failed to save beer:', error);
         }
     };
 
+    const getCountryCode = (countryName?: string) => {
+        if (!countryName) return null;
+        const map: { [key: string]: string } = {
+            'United States': 'us',
+            'Belgium': 'be',
+            'Germany': 'de',
+            'United Kingdom': 'gb',
+            'Canada': 'ca',
+            'Mexico': 'mx',
+            'Netherlands': 'nl',
+            'Ireland': 'ie'
+        };
+        return map[countryName] || null;
+    };
+
     return (
-        <main className="min-h-screen bg-[#0b0f19] text-gray-100 p-6 md:p-10 font-sans">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <main className="min-h-screen bg-[#0b0f19] text-gray-100 p-4 md:p-8">
+            <div className="max-w-7xl mx-auto space-y-6">
                 
-                {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-6">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111827] p-6 rounded-2xl border border-gray-800 shadow-xl">
                     <div>
-                        <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                            <span className="w-8 h-8 flex items-center justify-center">
-                                <BeerGlass srm={6} />
-                            </span>
-                            Aaron&apos;s Great Beer Adventure
+                        <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                            <span>??</span> Craft Beer Tasting Log
                         </h1>
-                        <p className="text-gray-400 text-sm mt-1">
-                            10,000 Beers and Counting
+                        <p className="text-sm text-gray-400 mt-1">
+                            Track, rate, and explore your personal cellar and tasting archives.
                         </p>
                     </div>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2"
+                        className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-2 text-sm"
                     >
-                        + Add New Beer
+                        <span>+</span> Log New Beer
                     </button>
                 </div>
 
-                {/* Modern Circular Vehicle Dashboard Pods */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
-                    {/* Pod 1: Total Beers Circular Speedometer */}
-                    <div className="bg-gradient-to-b from-[#161f33] to-[#0d1322] border border-gray-700/80 p-6 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_24px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-4 left-5 text-[11px] font-mono tracking-widest text-cyan-400 uppercase font-bold flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
-                            Total Beers
-                        </div>
-
-                        {/* Circular Dial Face */}
-                        <div className="mt-8 relative w-40 h-40 rounded-full bg-gray-950 border-4 border-gray-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.15)] flex items-center justify-center">
-                            {/* Outer Track SVG */}
-                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="42" fill="none" stroke="#1f2937" strokeWidth="4" strokeDasharray="2 4" />
-                                <circle 
-                                    cx="50" cy="50" r="42" fill="none" stroke="url(#cyan-dial-grad)" strokeWidth="5" 
-                                    strokeDasharray="264" strokeDashoffset={264 - (264 * Math.min(totalBeers, totalBeersMax)) / totalBeersMax} 
-                                    strokeLinecap="round" className="transition-all duration-700"
-                                    transform="rotate(-135 50 50)"
-                                />
-                                <defs>
-                                    <linearGradient id="cyan-dial-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#06b6d4" />
-                                        <stop offset="100%" stopColor="#3b82f6" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-
-                            {/* Needle */}
-                            <div 
-                                className="absolute inset-0 flex items-center justify-center transition-transform duration-700 z-20 pointer-events-none"
-                                style={{ transform: `rotate(${beerAngle}deg)` }}
-                            >
-                                <div className="w-0.5 h-16 bg-gradient-to-t from-transparent via-cyan-400 to-white origin-bottom relative -top-8 shadow-[0_0_6px_rgba(6,182,212,0.9)]">
-                                    <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-cyan-400 rounded-full shadow-[0_0_6px_rgba(6,182,212,1)]"></div>
-                                </div>
-                            </div>
-
-                            {/* Center Hub & Digital Readout */}
-                            <div className="z-35 flex flex-col items-center justify-center bg-gray-950/90 w-24 h-24 rounded-full border border-gray-800 shadow-inner">
-                                <span className="font-extrabold text-white text-xl tracking-tighter font-mono">{totalBeers.toLocaleString()}</span>
-                                <span className="text-[9px] text-gray-400 font-mono tracking-widest mt-0.5">BEERS</span>
-                            </div>
-                        </div>
-                        <div className="w-full flex justify-between text-[10px] text-gray-400 font-mono mt-4 px-4">
-                            <span>0</span>
-                            <span className="text-gray-500">MAX {totalBeersMax.toLocaleString()}</span>
-                        </div>
+                {/* Filters & Search Bar */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2">
+                        <input
+                            type="text"
+                            placeholder="Search by beer name, brewery, or tasting notes..."
+                            value={searchQuery}
+                            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                            className="w-full bg-[#111827] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors shadow-inner"
+                        />
                     </div>
-
-                    {/* Pod 2: Breweries Circular Tachometer */}
-                    <div className="bg-gradient-to-b from-[#161f33] to-[#0d1322] border border-gray-700/80 p-6 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_24px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-4 left-5 text-[11px] font-mono tracking-widest text-emerald-400 uppercase font-bold flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
-                            Breweries
-                        </div>
-
-                        {/* Circular Dial Face */}
-                        <div className="mt-8 relative w-40 h-40 rounded-full bg-gray-950 border-4 border-gray-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.8),0_0_15px_rgba(52,211,153,0.15)] flex items-center justify-center">
-                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="42" fill="none" stroke="#1f2937" strokeWidth="4" strokeDasharray="2 4" />
-                                <circle 
-                                    cx="50" cy="50" r="42" fill="none" stroke="url(#emerald-dial-grad)" strokeWidth="5" 
-                                    strokeDasharray="264" strokeDashoffset={264 - (264 * Math.min(totalBreweries, breweryMax)) / breweryMax} 
-                                    strokeLinecap="round" className="transition-all duration-700"
-                                    transform="rotate(-135 50 50)"
-                                />
-                                <defs>
-                                    <linearGradient id="emerald-dial-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#10b981" />
-                                        <stop offset="100%" stopColor="#84cc16" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-
-                            <div 
-                                className="absolute inset-0 flex items-center justify-center transition-transform duration-700 z-20 pointer-events-none"
-                                style={{ transform: `rotate(${breweryAngle}deg)` }}
-                            >
-                                <div className="w-0.5 h-16 bg-gradient-to-t from-transparent via-emerald-400 to-white origin-bottom relative -top-8 shadow-[0_0_6px_rgba(52,211,153,0.9)]">
-                                    <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-emerald-400 rounded-full shadow-[0_0_6px_rgba(52,211,153,1)]"></div>
-                                </div>
-                            </div>
-
-                            <div className="z-35 flex flex-col items-center justify-center bg-gray-950/90 w-24 h-24 rounded-full border border-gray-800 shadow-inner">
-                                <span className="font-extrabold text-white text-xl tracking-tighter font-mono">{totalBreweries.toLocaleString()}</span>
-                                <span className="text-[9px] text-gray-400 font-mono tracking-widest mt-0.5">ACTIVE</span>
-                            </div>
-                        </div>
-                        <div className="w-full flex justify-between text-[10px] text-gray-400 font-mono mt-4 px-4">
-                            <span>0</span>
-                            <span className="text-gray-500">MAX {breweryMax.toLocaleString()}</span>
-                        </div>
-                    </div>
-
-                    {/* Pod 3: Average Rank Circular Dial */}
-                    <div className="bg-gradient-to-b from-[#161f33] to-[#0d1322] border border-gray-700/80 p-6 rounded-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_24px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-4 left-5 text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span>
-                            Average Rank
-                        </div>
-
-                        {/* Circular Dial Face */}
-                        <div className="mt-8 relative w-40 h-40 rounded-full bg-gray-950 border-4 border-gray-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.8),0_0_15px_rgba(251,191,36,0.15)] flex items-center justify-center">
-                            <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="42" fill="none" stroke="#1f2937" strokeWidth="4" strokeDasharray="2 4" />
-                                <circle 
-                                    cx="50" cy="50" r="42" fill="none" stroke="url(#amber-dial-grad)" strokeWidth="5" 
-                                    strokeDasharray="264" strokeDashoffset={264 - (264 * Math.min(averageRank, 5)) / 5} 
-                                    strokeLinecap="round" className="transition-all duration-700"
-                                    transform="rotate(-135 50 50)"
-                                />
-                                <defs>
-                                    <linearGradient id="amber-dial-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#f97316" />
-                                        <stop offset="100%" stopColor="#fbbf24" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-
-                            <div 
-                                className="absolute inset-0 flex items-center justify-center transition-transform duration-700 z-20 pointer-events-none"
-                                style={{ transform: `rotate(${rankAngle}deg)` }}
-                            >
-                                <div className="w-0.5 h-16 bg-gradient-to-t from-transparent via-amber-400 to-white origin-bottom relative -top-8 shadow-[0_0_6px_rgba(251,191,36,0.9)]">
-                                    <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-amber-400 rounded-full shadow-[0_0_6px_rgba(251,191,36,1)]"></div>
-                                </div>
-                            </div>
-
-                            <div className="z-35 flex flex-col items-center justify-center bg-gray-950/90 w-24 h-24 rounded-full border border-gray-800 shadow-inner">
-                                <span className="font-extrabold text-white text-xl tracking-tighter font-mono">{averageRank.toFixed(2)} ?</span>
-                                <span className="text-[9px] text-gray-400 font-mono tracking-widest mt-0.5">SCORE</span>
-                            </div>
-                        </div>
-                        <div className="w-full flex justify-between text-[10px] text-gray-400 font-mono mt-4 px-4">
-                            <span>0.0</span>
-                            <span className="text-gray-500">MAX 5.0</span>
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* Filters */}
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#111827] p-4 rounded-2xl border border-gray-800">
-                    <input
-                        type="text"
-                        placeholder="Search by name, brewery..."
-                        value={searchQuery}
-                        onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-                        className="w-full md:w-96 bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                    />
-
-                    <div className="flex gap-4 w-full md:w-auto">
+                    <div className="flex gap-2">
                         <select
                             value={selectedStyle}
                             onChange={(e) => { setSelectedStyle(e.target.value); setPage(1); }}
-                            className="bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                            className="w-full bg-[#111827] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
                         >
                             <option value="">All Styles</option>
-                            {styles.map((style) => (
-                                <option key={style} value={style}>{style}</option>
-                            ))}
+                            <option value="IPA">IPA</option>
+                            <option value="Stout">Stout</option>
+                            <option value="Sour">Sour</option>
+                            <option value="Lager">Lager</option>
+                            <option value="Pilsner">Pilsner</option>
+                            <option value="Belgian">Belgian</option>
                         </select>
-
                         <select
                             value={sortOrder}
                             onChange={(e) => { setSortOrder(e.target.value); setPage(1); }}
-                            className="bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                            className="w-full bg-[#111827] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
                         >
-                            <option value="newest">Date Added (Newest)</option>
-                            <option value="oldest">Date Added (Oldest)</option>
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
                             <option value="rank_desc">Highest Rated</option>
                             <option value="abv_desc">Highest ABV</option>
                         </select>
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="bg-[#111827] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-gray-800 text-xs text-gray-400 uppercase tracking-wider bg-[#161f33]">
-                                    <th className="p-4">Badge #</th>
-                                    <th className="p-4 w-16"></th>
-                                    <th className="p-4">Beer / Brewery</th>
-                                    <th className="p-4">Style</th>
-                                    <th className="p-4">Origin</th>
-                                    <th className="p-4">Rank</th>
-                                    <th className="p-4 text-center">ABV</th>
-                                    <th className="p-4 text-center">IBU</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-800 text-sm">
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan={8} className="text-center py-12 text-gray-400">Loading your adventure...</td>
+                {/* Main Table Container */}
+                <div className="bg-[#111827] rounded-2xl border border-gray-800 overflow-hidden shadow-xl">
+                    {loading ? (
+                        <div className="p-12 text-center text-gray-400 font-mono animate-pulse">
+                            Loading tasting data...
+                        </div>
+                    ) : beers.length === 0 ? (
+                        <div className="p-12 text-center text-gray-500 font-mono">
+                            No beers found matching your criteria.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-gray-800 text-xs font-mono text-gray-400 uppercase bg-[#0f172a]">
+                                        <th className="p-4">No.</th>
+                                        <th className="p-4">Beer / Brewery</th>
+                                        <th className="p-4">Style</th>
+                                        <th className="p-4 text-center">Country</th>
+                                        <th className="p-4 text-center">Rank</th>
+                                        <th className="p-4 text-center">ABV</th>
+                                        <th className="p-4 text-center">IBU</th>
+                                        <th className="p-4">Tasting Notes</th>
+                                        <th className="p-4 text-right">Date</th>
                                     </tr>
-                                ) : beers.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className="text-center py-12 text-gray-400">No beers found.</td>
-                                    </tr>
-                                ) : (
-                                    beers.map((beer) => {
+                                </thead>
+                                <tbody className="divide-y divide-gray-800/60 text-sm">
+                                    {beers.map((beer) => {
                                         const countryCode = getCountryCode(beer.country);
                                         return (
-                                            <tr key={beer.id} className="hover:bg-[#1a2336] transition-colors">
-                                                <td className="p-4 font-mono text-blue-400">#{beer.beer_number}</td>
-                                                <td className="p-4">
-                                                    <div className="w-8 flex justify-center">
-                                                        <BeerGlass srm={beer.srm} />
-                                                    </div>
+                                            <tr key={beer.id} className="hover:bg-gray-800/40 transition-colors">
+                                                <td className="p-4 font-mono text-xs text-gray-400">
+                                                    #{beer.beer_number || beer.id}
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="font-bold text-white">{beer.beer_name}</div>
                                                     <div className="text-xs text-gray-400">{beer.brewery_name}</div>
                                                 </td>
-                                                <td className="p-4 text-gray-300">{beer.beer_style || '--'}</td>
-                                                <td className="p-4 text-gray-300">
-                                                    {beer.country ? (
-                                                        <div className="flex items-center gap-2">
-                                                            {countryCode ? (
-                                                                <img 
-                                                                    src={`https://flagcdn.com/24x18/${countryCode}.png`} 
-                                                                    alt={beer.country} 
-                                                                    className="w-5 h-3.5 object-cover rounded shadow-sm border border-gray-700" 
-                                                                />
-                                                            ) : (
-                                                                <span className="w-5 h-3.5 flex items-center justify-center text-xs">??</span>
-                                                            )}
-                                                            <span className="font-medium text-white">{beer.country}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-gray-500 text-xs">--</span>
-                                                    )}
-                                                    {beer.state && <div className="text-xs text-gray-400 mt-0.5 ml-7">{beer.state}</div>}
-                                                </td>
                                                 <td className="p-4">
+                                                    <span className="inline-block px-2.5 py-1 bg-gray-800 text-gray-300 rounded-lg text-xs font-medium">
+                                                        {beer.beer_style || 'Unspecified'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-center">
+                                                    {countryCode ? (
+                                                        <span className={`fi fi-${countryCode} text-lg rounded shadow-sm`} title={beer.country || ''}></span>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-500">{beer.country || '--'}</span>
+                                                    )}
+                                                </td>
+                                                <td className="p-4 text-center">
                                                     <StarRating rank={beer.rank} />
                                                 </td>
-                                                <td className="p-4">
-                                                    <SpeedometerGauge value={beer.abv} max={10} type="abv" beerId={beer.id} />
+                                                <td className="p-4 text-center">
+                                                    <SpeedometerGauge beerId={beer.id} max={15} type="abv" value={beer.abv} />
                                                 </td>
-                                                <td className="p-4">
-                                                    <SpeedometerGauge value={beer.ibu} max={100} type="ibu" beerId={beer.id} />
+                                                <td className="p-4 text-center">
+                                                    <SpeedometerGauge beerId={beer.id} max={120} type="ibu" value={beer.ibu} />
+                                                </td>
+                                                <td className="p-4 max-w-xs text-gray-300 text-xs italic truncate" title={beer.tasting_notes || ''}>
+                                                    {beer.tasting_notes || <span className="text-gray-600 not-italic">No notes recorded</span>}
+                                                </td>
+                                                <td className="p-4 text-right font-mono text-xs text-gray-400">
+                                                    {beer.consumption_date || '--'}
                                                 </td>
                                             </tr>
                                         );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
 
             </div>
 
-            {/* Add Beer Modal */}
+            {/* Modal for Adding New Beer */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-[#111827] border border-gray-800 rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center border-b border-gray-800 pb-4">
-                            <h2 className="text-xl font-bold text-white">Log a New Beer</h2>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white">&times;</button>
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                <span>??</span> Log New Beer Tasting
+                            </h2>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="text-gray-400 hover:text-white text-lg font-mono font-bold px-2 py-1"
+                            >
+                                ?
+                            </button>
                         </div>
+
                         <form onSubmit={handleAddBeer} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Brewery Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="e.g. Sierra Nevada"
+                                        value={breweryName}
+                                        onChange={(e) => setBreweryName(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Beer Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="e.g. Pale Ale"
+                                        value={beerName}
+                                        onChange={(e) => setBeerName(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Style</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. American IPA"
+                                        value={beerStyle}
+                                        onChange={(e) => setBeerStyle(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Country</label>
+                                    <input
+                                        type="text"
+                                        value={country}
+                                        onChange={(e) => setCountry(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">State</label>
+                                    <input
+                                        type="text"
+                                        value={state}
+                                        onChange={(e) => setState(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Rank (0-5)</label>
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        min="0"
+                                        max="5"
+                                        placeholder="4.5"
+                                        value={rank}
+                                        onChange={(e) => setRank(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">ABV (%)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="6.2"
+                                        value={abv}
+                                        onChange={(e) => setAbv(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">IBU</label>
+                                    <input
+                                        type="number"
+                                        placeholder="45"
+                                        value={ibu}
+                                        onChange={(e) => setIbu(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-mono text-gray-400 uppercase mb-1">SRM</label>
+                                    <input
+                                        type="number"
+                                        placeholder="6"
+                                        value={srm}
+                                        onChange={(e) => setSrm(e.target.value)}
+                                        className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                            </div>
+
                             <div>
-                                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Brewery Name</label>
-                                <input type="text" required value={breweryName} onChange={(e) => setBreweryName(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="e.g. Sierra Nevada" />
+                                <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Tasting Notes</label>
+                                <textarea
+                                    rows={3}
+                                    placeholder="Piney hops, citrus peel, clean malt finish..."
+                                    value={tastingNotes}
+                                    onChange={(e) => setTastingNotes(e.target.value)}
+                                    className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                ></textarea>
                             </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Beer Name</label>
-                                <input type="text" required value={beerName} onChange={(e) => setBeerName(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="e.g. Pale Ale" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Style</label>
-                                    <input type="text" value={beerStyle} onChange={(e) => setBeerStyle(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="e.g. Pale Ale" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Rank (0-5)</label>
-                                    <input type="number" step="0.5" max="5" min="0" value={rank} onChange={(e) => setRank(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="4.5" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">ABV (%)</label>
-                                    <input type="number" step="0.1" value={abv} onChange={(e) => setAbv(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="6.5" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">IBU</label>
-                                    <input type="number" value={ibu} onChange={(e) => setIbu(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="45" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">SRM (Color)</label>
-                                    <input type="number" value={srm} onChange={(e) => setSrm(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="6" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">Country</label>
-                                    <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">State</label>
-                                    <input type="text" value={state} onChange={(e) => setState(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-400 uppercase nad-1">Tasting Notes</label>
-                                <textarea value={tastingNotes} onChange={(e) => setTastingNotes(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="Piney, citrus, crisp finish..."></textarea>
-                            </div>
+
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-gray-400 hover:text-white">Cancel</button>
-                                <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2 rounded-xl transition-all">Save Beer</button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-semibold transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors shadow-lg"
+                                >
+                                    Save Beer Entry
+                                </button>
                             </div>
                         </form>
                     </div>
