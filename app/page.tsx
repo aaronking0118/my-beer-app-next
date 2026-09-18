@@ -140,7 +140,7 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     const clampedVal = Math.min(Math.max(numericVal, 0), max);
     const percentage = clampedVal / max;
-    // Original 180-degree half circle: starts at -90 deg and sweeps 180 deg
+    // Classic half-circle arc: -90deg to +90deg
     const angle = -90 + percentage * 180;
 
     const formattedVal = type === 'abv' 
@@ -151,8 +151,8 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     return (
         <div className="flex flex-col items-center">
-            <div className="relative w-14 h-14 flex items-center justify-center bg-gray-950 rounded-full border border-gray-700 shadow-inner">
-                <svg className="absolute inset-0 w-full h-full p-1" viewBox="0 0 36 36">
+            <div className="relative w-20 h-12 flex items-center justify-center">
+                <svg className="w-20 h-10 overflow-visible" viewBox="0 0 36 18">
                     <defs>
                         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                             {type === 'abv' ? (
@@ -171,28 +171,27 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
                         </linearGradient>
                     </defs>
                     <path
-                        d="M 4 30 A 13 13 0 0 1 32 30"
+                        d="M 3 16 A 15 15 0 0 1 33 16"
                         fill="none"
                         stroke={`url(#${gradientId})`}
-                        strokeWidth="3"
+                        strokeWidth="3.5"
                         strokeLinecap="round"
                     />
                 </svg>
 
+                {/* Needle pivoting at the bottom center */}
                 <div 
-                    className="absolute w-0.5 h-6 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] top-4 left-1/2 -translate-x-1/2"
+                    className="absolute bottom-0 left-1/2 w-0.5 h-10 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.9)]"
                     style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
                 >
-                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900"></div>
-                </div>
-
-                <div className="absolute inset-0 flex items-center justify-center pt-2">
-                    <span className="font-bold text-[10px] text-white font-mono tracking-tighter">{formattedVal}</span>
+                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white rounded-full border border-gray-900 shadow"></div>
                 </div>
             </div>
 
-            <div className="w-20 flex items-center justify-between text-[8px] text-gray-400 font-mono mt-1 px-1">
+            {/* Value and range labels cleanly underneath */}
+            <div className="w-24 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-0.5">
                 <span>0</span>
+                <span className="font-bold text-white text-xs">{formattedVal}</span>
                 <span>{max}</span>
             </div>
         </div>
@@ -354,7 +353,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Instrument Cluster Header (270° Circular Gauges with Modern Tachometer Needles) */}
+                {/* Instrument Cluster Header (270° Circular Gauges) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     
                     {/* Pod 1: Beers Circular Gauge */}
@@ -382,7 +381,6 @@ export default function Home() {
                                     strokeLinecap="round"
                                 />
                             </svg>
-                            {/* Modern Sports Car Tachometer Needle */}
                             <div 
                                 className="absolute inset-0 origin-center transition-transform duration-700 ease-out z-20 pointer-events-none"
                                 style={{ transform: `rotate(${beerAngle}deg)` }}
@@ -390,7 +388,6 @@ export default function Home() {
                                 <div className="absolute top-2 left-1/2 -translate-x-1/2 w-0.5 h-12 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
                                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-0.5 h-4 bg-red-500/80 rounded-full"></div>
                             </div>
-                            {/* Center Hub Cap */}
                             <div className="absolute w-4 h-4 bg-gradient-to-br from-gray-200 to-gray-600 rounded-full border border-gray-900 shadow-md z-30"></div>
                         </div>
                         <div className="w-36 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-2 px-1">
@@ -425,7 +422,6 @@ export default function Home() {
                                     strokeLinecap="round"
                                 />
                             </svg>
-                            {/* Modern Sports Car Tachometer Needle */}
                             <div 
                                 className="absolute inset-0 origin-center transition-transform duration-700 ease-out z-20 pointer-events-none"
                                 style={{ transform: `rotate(${breweryAngle}deg)` }}
@@ -433,7 +429,6 @@ export default function Home() {
                                 <div className="absolute top-2 left-1/2 -translate-x-1/2 w-0.5 h-12 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
                                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-0.5 h-4 bg-red-500/80 rounded-full"></div>
                             </div>
-                            {/* Center Hub Cap */}
                             <div className="absolute w-4 h-4 bg-gradient-to-br from-gray-200 to-gray-600 rounded-full border border-gray-900 shadow-md z-30"></div>
                         </div>
                         <div className="w-36 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-2 px-1">
@@ -467,7 +462,6 @@ export default function Home() {
                                     strokeLinecap="round"
                                 />
                             </svg>
-                            {/* Modern Sports Car Tachometer Needle */}
                             <div 
                                 className="absolute inset-0 origin-center transition-transform duration-700 ease-out z-20 pointer-events-none"
                                 style={{ transform: `rotate(${rankAngle}deg)` }}
@@ -475,7 +469,6 @@ export default function Home() {
                                 <div className="absolute top-2 left-1/2 -translate-x-1/2 w-0.5 h-12 bg-gradient-to-t from-red-500 via-white to-white rounded-full drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]"></div>
                                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-0.5 h-4 bg-red-500/80 rounded-full"></div>
                             </div>
-                            {/* Center Hub Cap */}
                             <div className="absolute w-4 h-4 bg-gradient-to-br from-gray-200 to-gray-600 rounded-full border border-gray-900 shadow-md z-30"></div>
                         </div>
                         <div className="w-36 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-2 px-1">
