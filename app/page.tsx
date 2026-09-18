@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import BeerGlass from '@/components/BeerGlass';
+export const dynamic = 'force-dynamic';
 
 interface Beer {
     id: number;
@@ -404,7 +405,7 @@ export default function Home() {
                         </div>
                         <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
                             <span>0</span>
-                            <span className="font-extrabold text-white text-base tracking-tight">{filteredBreweriesCount.toLocaleString()}</span>
+                            <span className="font-extrabold text-white text-base tracking-tight">{totalBreweries.toLocaleString()}</span>
                             <span>{breweryMax.toLocaleString()}</span>
                         </div>
                     </div>
@@ -441,7 +442,7 @@ export default function Home() {
                         </div>
                         <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
                             <span>0.0</span>
-                            <span className="font-extrabold text-white text-base tracking-tight">{averageRank.toFixed(2)} ?</span>
+                            <span className="font-extrabold text-white text-base tracking-tight">{averageRank.toFixed(2)}</span>
                             <span>5.0</span>
                         </div>
                     </div>
