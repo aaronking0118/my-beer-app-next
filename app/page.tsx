@@ -106,8 +106,8 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
         return (
             <div className="flex justify-center">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-950/95 border border-red-500 rounded-lg text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
-                    <span className="font-mono font-bold text-xs">??</span>
                     <span className="font-mono font-bold text-xs">{numericVal.toFixed(1)}%!</span>
+                    <span className="text-xs">??</span>
                 </div>
             </div>
         );
@@ -117,8 +117,8 @@ function SpeedometerGauge({ value, max, type }: { value: number | null; max: num
         return (
             <div className="flex justify-center">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/95 border border-emerald-400 rounded-lg text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse">
-                    <span className="text-xs">??</span>
                     <span className="font-mono font-bold text-xs">{Math.round(numericVal)}!</span>
+                    <span className="text-xs">??</span>
                 </div>
             </div>
         );
