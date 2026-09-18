@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import BeerGlass from '@/components/BeerGlass';
 
 interface Beer {
@@ -102,14 +102,12 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     const numericVal = typeof value === 'number' ? value : parseFloat(String(value));
 
-    // Percent & Exclamation Icon for ABV > max
     const percentExclamationIcon = (
         <span className="font-mono font-black text-sm animate-pulse tracking-tighter">
             %!
         </span>
     );
 
-    // Detailed Hop Cone Icon for IBU > max
     const detailedHopIcon = (
         <svg className="w-4 h-4 animate-pulse flex-shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C10.5 2 9 3.2 9 5c0 .8.3 1.5.8 2.1C8.3 8 7 9.8 7 12c0 1.8.8 3.4 2 4.4-.5.8-.8 1.7-.8 2.6 0 2.2 1.8 4 4 4s4-1.8 4-4c0-.9-.3-1.8-.8-2.6 1.2-1 2-2.6 2-4.4 0-2.2-1.3-4-2.8-4.9.5-.6.8-1.3.8-2.1 0-1.8-1.5-3-3-3zm0 2c.6 0 1 .6 1 1.5 0 .5-.2 1-.6 1.4l-.4.4-.4-.4c-.4-.4-.6-.9-.6-1.4 0-.9.4-1.5 1-1.5zm0 6c1.1 0 2 .5 2.6 1.2-.6.7-1.5 1.2-2.6 1.2s-2-.5-2.6-1.2c.6-.7 1.5-1.2 2.6-1.2zm0 5c1.4 0 2.7.5 3.6 1.3-.9.8-2.2 1.3-3.6 1.3s-2.7-.5-3.6-1.3c.9-.8 2.2-1.3 3.6-1.3zm0 4.5c.9 0 1.8-.3 2.5-.8-.7.5-1.6.8-2.5.8s-1.8-.3-2.5-.8c.7.5 1.6.8 2.5.8z"/>
@@ -150,7 +148,6 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
 
     return (
         <div className="flex flex-col items-center">
-            {/* Gauge Wrapper */}
             <div className="relative w-16 flex flex-col items-center">
                 <div className="relative w-16 h-9 bg-gray-900 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
                     <svg className="absolute inset-0 w-full h-full" viewBox="0 0 64 36">
@@ -180,7 +177,6 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
                         />
                     </svg>
 
-                    {/* White Needle with Center Pivot Cap */}
                     <div 
                         className="absolute bottom-0 w-0.5 h-7 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] left-1/2 -translate-x-1/2"
                         style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
@@ -190,7 +186,6 @@ function SpeedometerGauge({ value, max, type, beerId }: { value: number | null; 
                 </div>
             </div>
 
-            {/* Min, Value, Max Labels - Value centered perfectly under needle base */}
             <div className="w-24 flex items-center justify-between text-[9px] text-gray-400 font-mono mt-0.5 px-1 relative">
                 <span>0</span>
                 <span className="absolute left-1/2 -translate-x-1/2 font-bold text-white text-center">{formattedVal}</span>
@@ -204,9 +199,10 @@ export default function Home() {
     const [beers, setBeers] = useState<Beer[]>([]);
     const [totalBeers, setTotalBeers] = useState(0);
     const [totalBreweries, setTotalBreweries] = useState(0);
+    const [styles, setStyles] = useState<string[]>([]);
+    
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStyle, setSelectedStyle] = useState('');
-    const [styles, setStyles] = useState<string[]>([]);
     const [sortOrder, setSortOrder] = useState('newest');
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -244,6 +240,32 @@ export default function Home() {
     useEffect(() => {
         fetchBeers();
     }, [page, searchQuery, selectedStyle, sortOrder]);
+
+    // Calculate dynamic stats for currently loaded / filtered beers
+    const filteredBreweriesCount = useMemo(() => {
+        const set = new Set(beers.map(b => b.brewery_name.trim().toLowerCase()));
+        return set.size;
+    }, [beers]);
+
+    const averageRank = useMemo(() => {
+        const rankedBeers = beers.filter(b => b.rank != null && !isNaN(Number(b.rank)));
+        if (rankedBeers.length === 0) return 0;
+        const sum = rankedBeers.reduce((acc, b) => acc + Number(b.rank), 0);
+        return sum / rankedBeers.length;
+    }, [beers]);
+
+    // Gauge Angles & Percentages for Dashboard Cluster
+    const totalBeersMax = 10000;
+    const beerPercentage = Math.min(totalBeers / totalBeersMax, 1);
+    const beerAngle = -90 + beerPercentage * 180;
+
+    const breweryMax = 2000;
+    const breweryPercentage = Math.min(filteredBreweriesCount / breweryMax, 1);
+    const breweryAngle = -90 + breweryPercentage * 180;
+
+    const rankMax = 5;
+    const rankPercentage = Math.min(averageRank / rankMax, 1);
+    const rankAngle = -90 + rankPercentage * 180;
 
     const handleAddBeer = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -289,6 +311,7 @@ export default function Home() {
         <main className="min-h-screen bg-[#0b0f19] text-gray-100 p-6 md:p-10 font-sans">
             <div className="max-w-7xl mx-auto space-y-8">
                 
+                {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-6">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
@@ -309,23 +332,123 @@ export default function Home() {
                     </button>
                 </div>
 
+                {/* Car Instrument Cluster / Dashboard Gauges Header */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-[#111827] border border-gray-800 p-6 rounded-2xl shadow-sm">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Beers</p>
-                        <p className="text-4xl font-extrabold text-white mt-2">{totalBeers.toLocaleString()}</p>
+                    
+                    {/* Pod 1: Total Beers Speedometer */}
+                    <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
+                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-cyan-400 uppercase font-bold flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                            Total Beers
+                        </div>
+                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
+                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+                                <defs>
+                                    <linearGradient id="pod-cyan-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#06b6d4" />
+                                        <stop offset="50%" stopColor="#3b82f6" />
+                                        <stop offset="100%" stopColor="#6366f1" />
+                                    </linearGradient>
+                                </defs>
+                                <path
+                                    d="M 12 60 A 60 60 0 0 1 132 60"
+                                    fill="none"
+                                    stroke="url(#pod-cyan-grad)"
+                                    strokeWidth="6"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div 
+                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
+                                style={{ transform: `translateX(-50%) rotate(${beerAngle}deg)` }}
+                            >
+                                <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
+                            </div>
+                        </div>
+                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                            <span>0</span>
+                            <span className="font-extrabold text-white text-base tracking-tight">{totalBeers.toLocaleString()}</span>
+                            <span>{totalBeersMax.toLocaleString()}</span>
+                        </div>
                     </div>
-                    <div className="bg-[#111827] border border-gray-800 p-6 rounded-2xl shadow-sm">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Breweries</p>
-                        <p className="text-4xl font-extrabold text-white mt-2">{totalBreweries.toLocaleString()}</p>
+
+                    {/* Pod 2: Breweries Tachometer */}
+                    <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
+                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-bold flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Breweries
+                        </div>
+                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
+                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+                                <defs>
+                                    <linearGradient id="pod-emerald-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#d97706" />
+                                        <stop offset="50%" stopColor="#84cc16" />
+                                        <stop offset="100%" stopColor="#22c55e" />
+                                    </linearGradient>
+                                </defs>
+                                <path
+                                    d="M 12 60 A 60 60 0 0 1 132 60"
+                                    fill="none"
+                                    stroke="url(#pod-emerald-grad)"
+                                    strokeWidth="6"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div 
+                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
+                                style={{ transform: `translateX(-50%) rotate(${breweryAngle}deg)` }}
+                            >
+                                <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
+                            </div>
+                        </div>
+                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                            <span>0</span>
+                            <span className="font-extrabold text-white text-base tracking-tight">{filteredBreweriesCount.toLocaleString()}</span>
+                            <span>{breweryMax.toLocaleString()}</span>
+                        </div>
                     </div>
-                    <div className="bg-[#111827] border border-gray-800 p-6 rounded-2xl shadow-sm">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Platform Status</p>
-                        <p className="text-xl font-bold text-emerald-400 mt-3 flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span> Next.js Active
-                        </p>
+
+                    {/* Pod 3: Avg Rank Dial */}
+                    <div className="bg-gradient-to-b from-[#161f33] to-[#111827] border border-gray-700/80 p-5 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col items-center">
+                        <div className="absolute top-3 left-4 text-[10px] font-mono tracking-widest text-amber-400 uppercase font-bold flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                            Average Rank
+                        </div>
+                        <div className="mt-6 relative w-36 h-20 bg-gray-950 rounded-t-full border-t border-x border-gray-700 overflow-hidden flex flex-col items-center justify-end shadow-inner">
+                            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 72">
+                                <defs>
+                                    <linearGradient id="pod-amber-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#ef4444" />
+                                        <stop offset="50%" stopColor="#f59e0b" />
+                                        <stop offset="100%" stopColor="#eab308" />
+                                    </linearGradient>
+                                </defs>
+                                <path
+                                    d="M 12 60 A 60 60 0 0 1 132 60"
+                                    fill="none"
+                                    stroke="url(#pod-amber-grad)"
+                                    strokeWidth="6"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div 
+                                className="absolute bottom-0 w-1 h-16 bg-white origin-bottom transition-transform duration-500 z-20 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] left-1/2 -translate-x-1/2"
+                                style={{ transform: `translateX(-50%) rotate(${rankAngle}deg)` }}
+                            >
+                                <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 bg-white rounded-full border-2 border-gray-900 shadow-md"></div>
+                            </div>
+                        </div>
+                        <div className="w-40 flex items-center justify-between text-[10px] text-gray-400 font-mono mt-1 px-1">
+                            <span>0.0</span>
+                            <span className="font-extrabold text-white text-base tracking-tight">{averageRank.toFixed(2)} ?</span>
+                            <span>5.0</span>
+                        </div>
                     </div>
+
                 </div>
 
+                {/* Filters */}
                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#111827] p-4 rounded-2xl border border-gray-800">
                     <input
                         type="text"
@@ -360,6 +483,7 @@ export default function Home() {
                     </div>
                 </div>
 
+                {/* Table */}
                 <div className="bg-[#111827] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -439,6 +563,7 @@ export default function Home() {
 
             </div>
 
+            {/* Add Beer Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
