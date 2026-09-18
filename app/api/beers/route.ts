@@ -1,20 +1,10 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { Pool } from 'pg';
 
-const dbPath = path.join(process.cwd(), 'data', 'beers.json');
-
-function getDb() {
-    if (!fs.existsSync(dbPath)) {
-        return { beers: [] };
-    }
-    const fileData = fs.readFileSync(dbPath, 'utf-8');
-    return JSON.parse(fileData);
-}
-
-function saveDb(data: any) {
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf-8');
-}
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 
 export async function GET(request: Request) {
     try {
@@ -24,60 +14,63 @@ export async function GET(request: Request) {
         const sort = url.searchParams.get('sort') || 'newest';
         const page = parseInt(url.searchParams.get('page') || '1', 10);
         const limit = 25;
+        const offset = (page - 1) * limit;
 
-        const db = getDb();
-        let beers = db.beers || [];
+        // Build dynamic query filters
+        let queryConditions = [];
+        let queryParams: any[] = [];
+        let paramIndex = 1;
 
-        // Apply filters
-        const filtered = beers.filter((beer: any) => {
-            const matchesSearch = 
-                (beer.beer_name && beer.beer_name.toLowerCase().includes(search)) ||
-                (beer.brewery_name && beer.brewery_name.toLowerCase().includes(search));
-            
-            const matchesStyle = style === '' || beer.beer_style === style;
+        if (search) {
+            queryConditions.push(`(LOWER(beer_name) LIKE $${paramIndex} OR LOWER(brewery_name) LIKE $${paramIndex})`);
+            queryParams.push(`%${search}%`);
+            paramIndex++;
+        }
 
-            return matchesSearch && matchesStyle;
-        });
+        if (style) {
+            queryConditions.push(`beer_style = $${paramIndex}`);
+            queryParams.push(style);
+            paramIndex++;
+        }
 
-        // Compute global stats for the filtered dataset before pagination
-        const uniqueBreweries = new Set(filtered.map((b: any) => b.brewery_name?.trim().toLowerCase()).filter(Boolean));
-        
-        const rankedBeers = filtered.filter((b: any) => b.rank != null && !isNaN(Number(b.rank)));
-        const totalRankSum = rankedBeers.reduce((acc: number, b: any) => acc + Number(b.rank), 0);
-        const averageRank = rankedBeers.length > 0 ? totalRankSum / rankedBeers.length : 0;
+        const whereClause = queryConditions.length > 0 ? `WHERE ${queryConditions.join(' AND ')}` : '';
 
-        // Apply sorting
-        filtered.sort((a: any, b: any) => {
-            if (sort === 'oldest') {
-                return (a.beer_number || a.id) - (b.beer_number || b.id);
-            } else if (sort === 'rank_desc') {
-                return (b.rank || 0) - (a.rank || 0);
-            } else if (sort === 'abv_desc') {
-                return (b.abv || 0) - (a.abv || 0);
-            } else {
-                // newest
-                return (b.beer_number || b.id) - (a.beer_number || a.id);
-            }
-        });
+        // Determine sort order
+        let orderBy = 'id DESC';
+        if (sort === 'oldest') orderBy = 'id ASC';
+        else if (sort === 'rank_desc') orderBy = 'rank DESC NULLS LAST';
+        else if (sort === 'abv_desc') orderBy = 'abv DESC NULLS LAST';
 
-        const total = filtered.length;
-        const totalBreweries = uniqueBreweries.size;
-        const totalPages = Math.ceil(total / limit) || 1;
+        // Fetch paginated beers from Neon
+        const queryText = `
+            SELECT * FROM beers 
+            ${whereClause} 
+            ORDER BY ${orderBy} 
+            LIMIT ${limit} OFFSET ${offset}
+        `;
+        const result = await pool.query(queryText, queryParams);
+        const beers = result.rows;
 
-        const paginatedBeers = filtered.slice((page - 1) * limit, page * limit);
+        // Fetch total count for pagination
+        const countQuery = `SELECT COUNT(*) FROM beers ${whereClause}`;
+        const countResult = await pool.query(countQuery, queryParams);
+        const total = parseInt(countResult.rows[0].count, 10);
 
-        // Extract unique styles for dropdown
-        const allStyles = Array.from(new Set(beers.map((b: any) => b.beer_style).filter(Boolean))) as string[];
-        allStyles.sort();
+        // Fetch total unique breweries
+        const breweriesResult = await pool.query(`SELECT COUNT(DISTINCT LOWER(TRIM(brewery_name))) FROM beers`);
+        const totalBreweries = parseInt(breweriesResult.rows[0].count, 10);
+
+        // Fetch all unique styles for dropdown
+        const stylesResult = await pool.query(`SELECT DISTINCT beer_style FROM beers WHERE beer_style IS NOT NULL AND beer_style != '' ORDER BY beer_style ASC`);
+        const styles = stylesResult.rows.map(r => r.beer_style);
 
         return NextResponse.json({
-            beers: paginatedBeers,
+            beers,
             total,
             totalBreweries,
-            averageRank,
-            totalPages,
+            totalPages: Math.ceil(total / limit) || 1,
             page,
-            styles: allStyles
+            styles
         });
     } catch (error) {
         console.error('API Error:', error);
@@ -88,35 +81,35 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const db = getDb();
         
-        if (!db.beers) {
-            db.beers = [];
-        }
+        // Get max ID and number from Neon
+        const maxResult = await pool.query(`SELECT MAX(id) as max_id, MAX(beer_number) as max_num FROM beers`);
+        const maxId = maxResult.rows[0]?.max_id || 0;
+        const maxNumber = maxResult.rows[0]?.max_num || 0;
 
-        const maxId = db.beers.length > 0 ? Math.max(...db.beers.map((b: any) => b.id || 0)) : 0;
-        const maxNumber = db.beers.length > 0 ? Math.max(...db.beers.map((b: any) => b.beer_number || 0)) : 0;
+        const insertQuery = `
+            INSERT INTO beers (id, beer_number, beer_name, brewery_name, beer_style, rank, abv, ibu, srm, country, state, tasting_notes, consumption_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_DATE)
+            RETURNING *
+        `;
 
-        const newBeer = {
-            id: maxId + 1,
-            beer_number: maxNumber + 1,
-            beer_name: body.beer_name || 'Unnamed Beer',
-            brewery_name: body.brewery_name || 'Unknown Brewery',
-            beer_style: body.beer_style || '',
-            rank: body.rank !== undefined ? body.rank : null,
-            abv: body.abv !== undefined ? body.abv : null,
-            ibu: body.ibu !== undefined ? body.ibu : null,
-            srm: body.srm !== undefined ? body.srm : null,
-            country: body.country || 'USA',
-            state: body.state || '',
-            tasting_notes: body.tasting_notes || '',
-            consumption_date: new Date().toISOString().split('T')[0]
-        };
+        const values = [
+            maxId + 1,
+            maxNumber + 1,
+            body.beer_name || 'Unnamed Beer',
+            body.brewery_name || 'Unknown Brewery',
+            body.beer_style || '',
+            body.rank !== undefined && body.rank !== '' ? body.rank : null,
+            body.abv !== undefined && body.abv !== '' ? body.abv : null,
+            body.ibu !== undefined && body.ibu !== '' ? body.ibu : null,
+            body.srm !== undefined && body.srm !== '' ? body.srm : null,
+            body.country || 'USA',
+            body.state || '',
+            body.tasting_notes || ''
+        ];
 
-        db.beers.unshift(newBeer);
-        saveDb(db);
-
-        return NextResponse.json({ success: true, beer: newBeer });
+        const result = await pool.query(insertQuery, values);
+        return NextResponse.json({ success: true, beer: result.rows[0] });
     } catch (error) {
         console.error('API Error:', error);
         return NextResponse.json({ error: 'Failed to add beer' }, { status: 500 });
